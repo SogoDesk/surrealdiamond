@@ -19,6 +19,7 @@ import { API_AUTH, ApiRequestError } from "@/lib/api/client";
 import PasswordRules from "@/components/account/PasswordRules";
 import p from "./pages.module.css";
 import s from "./account.module.css";
+import PasswordInput from "@/components/ui/PasswordInput";
 
 const ROLE_LINE: Record<Customer["role"], string> = {
   owner: "Account owner: orders, memo, invoices, payments and payment methods.",
@@ -53,7 +54,6 @@ function ChangePassword({ c }: { c: Customer }) {
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
@@ -97,28 +97,23 @@ function ChangePassword({ c }: { c: Customer }) {
     setDone(true);
   };
 
-  const type = show ? "text" : "password";
   return (
     <form className={s.form} onSubmit={submit} noValidate>
       <label className={`${s.field} ${s.wideField}`}>
         <span>Current password</span>
-        <input type={type} autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
+        <PasswordInput autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
       </label>
       <label className={s.field}>
         <span>New password</span>
-        <input type={type} autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} aria-describedby="change-rules" />
+        <PasswordInput autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} aria-describedby="change-rules" />
       </label>
       <label className={s.field}>
         <span>Confirm new password</span>
-        <input type={type} autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+        <PasswordInput autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
       </label>
       <div id="change-rules" className={s.wideField}>
         <PasswordRules password={next} email={c.email} company={c.company} />
       </div>
-      <label className={s.check}>
-        <input type="checkbox" checked={show} onChange={(e) => setShow(e.target.checked)} />
-        Show passwords
-      </label>
       {error && (
         <p className={s.error} role="alert">
           {error}

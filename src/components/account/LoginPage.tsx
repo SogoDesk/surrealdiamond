@@ -34,6 +34,7 @@ import { INVITE_HOURS, createSetupLink, customerByEmail, ensureTestPasswords, ty
 import { TEST_DEALERS, TEST_DEALER_PASSWORD } from "@/content/testAccounts";
 import { account, brand } from "@/content/site";
 import s from "./account.module.css";
+import PasswordInput from "@/components/ui/PasswordInput";
 
 const BENEFITS = ["Globally competitive direct pricing", "Comprehensive brand strategy", "Digital marketing support", "Territory exclusivity"];
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -256,12 +257,7 @@ function LoginForm() {
               Forgot password?
             </button>
           </span>
-          <span className={s.passWrap}>
-            <input id="login-password" className={s.input} type={show ? "text" : "password"} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} aria-invalid={Boolean(errors.password)} aria-describedby={errors.password ? "password-error" : undefined} />
-            <button type="button" className={s.showBtn} onClick={() => setShow((v) => !v)} aria-pressed={show}>
-              {show ? "Hide" : "Show"}
-            </button>
-          </span>
+          <PasswordInput id="login-password" className={s.input} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} aria-invalid={Boolean(errors.password)} aria-describedby={errors.password ? "password-error" : undefined} shown={show} onShownChange={setShow} />
           {errors.password && (
             <span id="password-error" className={s.error} role="alert">
               {errors.password}

@@ -16,6 +16,7 @@ import { authApi, type Me, type MfaBegin } from "@/lib/api/auth";
 import { ApiRequestError } from "@/lib/api/client";
 import { clearDealer } from "@/lib/dealer";
 import s from "./admin.module.css";
+import PasswordInput from "@/components/ui/PasswordInput";
 
 type Step =
   | { name: "loading" }
@@ -162,7 +163,7 @@ export default function StaffGate() {
             </label>
             <label className={s.field}>
               <span className={s.label}>Password</span>
-              <input className={s.input} type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <PasswordInput className={s.input} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
             </label>
             {errorLine}
             <button type="submit" className={s.primary} disabled={busy || !email || !password}>
@@ -392,7 +393,7 @@ export function StaffTwoFactor({ onClose }: { onClose: () => void }) {
           <p>Two-factor is on, so each sign in asks for a code from your authenticator app. To turn it off, enter your password.</p>
           <label className={s.field}>
             <span className={s.label}>Password</span>
-            <input className={s.input} type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
+            <PasswordInput className={s.input} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} />
           </label>
           {errorLine}
           <div className={s.gateFoot}>
@@ -445,16 +446,16 @@ export function StaffPassword({ email, onClose }: { email: string; onClose: () =
       <form className={s.gateForm} onSubmit={submit} noValidate>
         <label className={s.field}>
           <span className={s.label}>Current password</span>
-          <input className={s.input} type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
+          <PasswordInput className={s.input} autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
         </label>
         <label className={s.field}>
           <span className={s.label}>New password</span>
-          <input className={s.input} type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} />
+          <PasswordInput className={s.input} autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} />
         </label>
         <PasswordRules password={next} email={email} company="" />
         <label className={s.field}>
           <span className={s.label}>Confirm new password</span>
-          <input className={s.input} type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
+          <PasswordInput className={s.input} autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} />
         </label>
         {error && (
           <p className={s.error} role="alert">

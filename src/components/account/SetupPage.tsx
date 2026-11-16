@@ -27,6 +27,7 @@ import { applySession } from "@/lib/api/applySession";
 import { API_AUTH, ApiRequestError } from "@/lib/api/client";
 import { account, brand } from "@/content/site";
 import s from "./account.module.css";
+import PasswordInput from "@/components/ui/PasswordInput";
 
 const COMING = ["Your orders and their tracking", "Stones on memo, and memo reports", "Open invoices, payments and statements", "Saved payment methods and addresses"];
 
@@ -50,7 +51,6 @@ function SetupForm() {
   const [found, setFound] = useState<SetupView | null>(null);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
   const [tried, setTried] = useState(false);
   const [resent, setResent] = useState<SetupLink | null>(null);
@@ -213,19 +213,14 @@ function SetupForm() {
 
       <label className={s.field}>
         <span className={s.label}>New password</span>
-        <span className={s.passWrap}>
-          <input className={s.input} type={show ? "text" : "password"} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} aria-invalid={tried && !check.valid} aria-describedby="setup-rules" />
-          <button type="button" className={s.showBtn} onClick={() => setShow((v) => !v)} aria-pressed={show}>
-            {show ? "Hide" : "Show"}
-          </button>
-        </span>
+        <PasswordInput className={s.input} autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} aria-invalid={tried && !check.valid} aria-describedby="setup-rules" />
       </label>
       <div id="setup-rules">
         <PasswordRules password={password} email={c.email} company={c.company} />
       </div>
       <label className={s.field}>
         <span className={s.label}>Confirm password</span>
-        <input className={s.input} type={show ? "text" : "password"} autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} aria-invalid={mismatch || (tried && confirm !== password)} aria-describedby={mismatch ? "confirm-error" : undefined} />
+        <PasswordInput className={s.input} autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} aria-invalid={mismatch || (tried && confirm !== password)} aria-describedby={mismatch ? "confirm-error" : undefined} />
         {(mismatch || (tried && confirm !== password)) && (
           <span id="confirm-error" className={s.error} role="alert">
             {confirm ? "The two passwords do not match." : "Type the password again to confirm it."}
