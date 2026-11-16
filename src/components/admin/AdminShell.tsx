@@ -7,18 +7,21 @@
  * the access matrix in src/content/admin.ts), and a top bar with the page's
  * breadcrumb, the role switcher, View the site and Sign out.
  *
- * Staff enter as one of the named test accounts in the preview, one per
- * role (F-E3); real named logins come with the authentication service (Q10). A module the role cannot open shows a locked
- * panel; a view-only role sees the page with its controls disabled, through
- * useAdminAccess().
+ * On the live site staff sign in with their own login (StaffGate). In the
+ * preview they enter as anyone on the staff list (lib/staffAdmin.ts: the
+ * test accounts, one per role, plus people added under Staff and roles),
+ * so a custom role can be tried too. Access comes from the role book: the
+ * built in matrix and any custom roles. A module the role cannot open shows
+ * a locked panel; a view-only role sees the page with its controls
+ * disabled, through useAdminAccess().
  */
 
 import Link from "next/link";
 import { createContext, useContext, useState, useSyncExternalStore, type ReactNode } from "react";
-import { ROLE_LABEL, ROLE_LINE, adminModule, adminModules, type Access } from "@/content/admin";
-import { TEST_STAFF } from "@/content/testAccounts";
+import { adminModule, adminModules, type Access } from "@/content/admin";
 import { API_AUTH } from "@/lib/api/client";
 import { signInStaff, signOutStaff, useStaff } from "@/lib/staff";
+import { useRoleBook, useStaffAdmin } from "@/lib/staffAdmin";
 import AdminIcon from "./AdminIcon";
 import StaffGate, { StaffPassword, StaffTwoFactor } from "./StaffGate";
 import s from "./admin.module.css";
@@ -40,6 +43,8 @@ export default function AdminShell({ moduleId, children }: { moduleId: string; c
   const hydrated = useHydrated();
   const [panel, setPanel] = useState<"password" | "twoFactor" | null>(null);
   const mod = adminModule(moduleId);
+  const book = useRoleBook();
+  const people = useStaffAdmin().users.filter((u) => u.status !== "disabled" && book.exists(u.role));
 
   if (!hydrated) return <div className={s.boot} aria-busy="true" aria-label="Loading the console" data-console />;
 
@@ -53,20 +58,20 @@ export default function AdminShell({ moduleId, children }: { moduleId: string; c
             SURREAL <span>Console</span>
           </p>
           <h1 className={s.signinTitle}>Staff sign in</h1>
-          <p className={s.signinLine}>Choose a test account to preview the console. Each has one role and sees the modules its access allows.</p>
+          <p className={s.signinLine}>Choose someone on the staff list to preview the console. Each has one role and sees the modules its access allows.</p>
           <ul className={s.roleList}>
-            {TEST_STAFF.map((t) => (
+            {people.map((t) => (
               <li key={t.email}>
                 <button type="button" className={s.roleBtn} onClick={() => signInStaff(t.role, t)}>
                   <strong>
-                    {t.name} <em>{ROLE_LABEL[t.role]}</em>
+                    {t.name} <em>{book.label(t.role)}</em>
                   </strong>
-                  <span>{ROLE_LINE[t.role]}</span>
+                  <span>{book.line(t.role)}</span>
                 </button>
               </li>
             ))}
           </ul>
-          <p className={s.signinNote}>Preview: these are dummy accounts for role testing (docs/TESTING.md). Staff get their own named logins when the authentication service is set up.</p>
+          <p className={s.signinNote}>Preview: dummy accounts for role testing (docs/TESTING.md), plus anyone added under Staff and roles. On the live site every person signs in with their own login.</p>
           <Link href="/" className={s.backLink}>
             Back to the site
           </Link>
@@ -75,7 +80,8 @@ export default function AdminShell({ moduleId, children }: { moduleId: string; c
     );
   }
 
-  const access: Access = mod ? mod.access[staff.role] : "none";
+  const access: Access = mod ? book.access(staff.role, mod.id) : "none";
+  const roleName = book.label(staff.role);
 
   return (
     <div className={s.console} data-console>
@@ -86,7 +92,7 @@ export default function AdminShell({ moduleId, children }: { moduleId: string; c
         <nav>
           <ul className={s.nav}>
             {adminModules.map((m) => {
-              const a = m.access[staff.role];
+              const a = book.access(staff.role, m.id);
               return (
                 <li key={m.id}>
                   <Link href={m.href} className={s.navLink} aria-current={m.id === moduleId ? "page" : undefined} data-locked={a === "none" ? "" : undefined}>
@@ -121,21 +127,22 @@ export default function AdminShell({ moduleId, children }: { moduleId: string; c
           <div className={s.topTools}>
             {API_AUTH ? (
               <span className={s.roleSwitch}>
-                Signed in as {staff.name ?? staff.email}, {ROLE_LABEL[staff.role]}
+                Signed in as {staff.name ?? staff.email}, {roleName}
               </span>
             ) : (
             <label className={s.roleSwitch}>
               <span>Signed in as</span>
               <select
-                value={TEST_STAFF.find((t) => t.email === staff.email)?.email ?? TEST_STAFF.find((t) => t.role === staff.role)?.email}
+                value={people.find((t) => t.email === staff.email)?.email ?? ""}
                 onChange={(e) => {
-                  const t = TEST_STAFF.find((x) => x.email === e.target.value);
+                  const t = people.find((x) => x.email === e.target.value);
                   if (t) signInStaff(t.role, t);
                 }}
               >
-                {TEST_STAFF.map((t) => (
+                {!people.some((t) => t.email === staff.email) && <option value="">{staff.name ?? staff.email}, {roleName}</option>}
+                {people.map((t) => (
                   <option key={t.email} value={t.email}>
-                    {t.name}, {ROLE_LABEL[t.role]}
+                    {t.name}, {book.label(t.role)}
                   </option>
                 ))}
               </select>
@@ -171,12 +178,12 @@ export default function AdminShell({ moduleId, children }: { moduleId: string; c
                   <path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6" />
                 </svg>
               </span>
-              <h1 className={s.pageTitle}>{mod?.label ?? "This page"} is not open to {ROLE_LABEL[staff.role]}</h1>
+              <h1 className={s.pageTitle}>{mod?.label ?? "This page"} is not open to {roleName}</h1>
               <p className={s.pageLine}>The access matrix decides which roles see each module. {API_AUTH ? "See who has access under Staff and roles." : "Switch role above, or see who has access under Staff and roles."}</p>
             </div>
           ) : (
             <AccessContext.Provider value={access}>
-              {access === "view" && moduleId !== "overview" && <p className={s.viewOnly}>View only for {ROLE_LABEL[staff.role]}. Editing is off.</p>}
+              {access === "view" && moduleId !== "overview" && <p className={s.viewOnly}>View only for {roleName}. Editing is off.</p>}
               {children}
             </AccessContext.Provider>
           )}

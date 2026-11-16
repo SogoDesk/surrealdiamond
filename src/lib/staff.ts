@@ -1,28 +1,32 @@
 "use client";
 
 /**
- * The staff preview session for the admin console: a named test person and
- * their role, kept in this browser (src/content/testAccounts.ts, one dummy
- * login per role for role testing, F-E3). Real staff get named logins with
- * the authentication service (Q10 recommends one per person).
+ * The console's copy of who is signed in: a person and their role. On the
+ * live site it mirrors the API's session (StaffGate, SessionSync); in the
+ * preview it is one of the staff list's people (lib/staffAdmin.ts, which
+ * starts with the test accounts in src/content/testAccounts.ts), and signing
+ * in is logged there. A role is a built in role or a custom one's id.
  */
 
-import { ROLES, type Role } from "@/content/admin";
 import { authApi } from "./api/auth";
 import { API_AUTH } from "./api/client";
 import { createLocalStore } from "./localStore";
+import { recordSignIn } from "./staffAdmin";
 
 export interface StaffSession {
-  role: Role;
+  role: string;
   name?: string;
   email?: string;
 }
 
-const isSession = (v: unknown): v is StaffSession | null => v === null || (typeof v === "object" && v !== null && ROLES.includes((v as StaffSession).role));
+const isSession = (v: unknown): v is StaffSession | null => v === null || (typeof v === "object" && v !== null && typeof (v as StaffSession).role === "string" && (v as StaffSession).role.length > 0);
 const store = createLocalStore<StaffSession | null>("surreal-staff", null, isSession);
 
 export const useStaff = store.useStore;
-export const signInStaff = (role: Role, person?: { name: string; email: string }) => store.set({ role, ...(person && { name: person.name, email: person.email }) });
+export const signInStaff = (role: string, person?: { name: string; email: string }) => {
+  store.set({ role, ...(person && { name: person.name, email: person.email }) });
+  if (!API_AUTH && person) recordSignIn({ ...person, role });
+};
 export const setStaffSession = (session: StaffSession | null) => store.set(session);
 /** Forgets the screens' copy of the session, without calling the API. */
 export const clearStaff = () => store.set(null);

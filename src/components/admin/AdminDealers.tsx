@@ -12,17 +12,21 @@
  *   update, or an error that is skipped), done. New customers can be sent
  *   their setup links at the end. A template workbook is offered.
  *
+ * - Add a dealer: one store and person through a form in a side drawer,
+ *   into the same list, with the setup link sent at once if wanted.
+ *
  * Setup links are emailed by the email service (C-14) once it is connected;
  * in the preview the links are listed here instead. Administrator, Sales and
  * Manager edit; Finance views; HR has no access.
  */
 
 import { useMemo, useRef, useState, type DragEvent } from "react";
-import { ROLE_LABEL } from "@/content/admin";
 import { downloadCsv } from "@/lib/csv";
 import { FIELDS, SAMPLE_TABLE, autoMatch, checkRows, readTable, type CheckedRow, type Mapping } from "@/lib/customerImport";
 import { INVITE_HOURS, createSetupLink, importCustomers, logImport, removeCustomer, useCustomers, useImportLog, type Customer, type CustomerStatus } from "@/lib/customers";
 import { useStaff } from "@/lib/staff";
+import { useRoleBook } from "@/lib/staffAdmin";
+import { AddCustomerForm, AdminDrawer } from "./AdminAdd";
 import { useAdminAccess } from "./AdminShell";
 import s from "./admin.module.css";
 
@@ -406,6 +410,7 @@ export default function AdminDealers() {
   const access = useAdminAccess();
   const readOnly = access !== "edit";
   const staff = useStaff();
+  const { label: roleLabel } = useRoleBook();
   const customers = useCustomers();
   const imports = useImportLog();
   const [importing, setImporting] = useState(false);
@@ -413,8 +418,10 @@ export default function AdminDealers() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<CustomerStatus | "all">("all");
   const [confirmId, setConfirmId] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [addKey, setAddKey] = useState(0);
 
-  const by = staff?.name ? `${staff.name}, ${ROLE_LABEL[staff.role]}` : staff ? ROLE_LABEL[staff.role] : "";
+  const by = staff?.name ? `${staff.name}, ${roleLabel(staff.role)}` : staff ? roleLabel(staff.role) : "";
   const count = (st: CustomerStatus) => customers.filter((c) => c.status === st).length;
   const stores = new Set(customers.map((c) => c.account || c.company)).size;
 
@@ -446,9 +453,21 @@ export default function AdminDealers() {
           </p>
         </div>
         {!readOnly && !importing && (
-          <button type="button" className={s.primary} onClick={() => setImporting(true)}>
-            Import customers
-          </button>
+          <span className={s.cardTools}>
+            <button type="button" className={s.secondaryBtn} onClick={() => setImporting(true)}>
+              Import customers
+            </button>
+            <button
+              type="button"
+              className={s.primary}
+              onClick={() => {
+                setAddKey((k) => k + 1);
+                setAdding(true);
+              }}
+            >
+              Add a dealer
+            </button>
+          </span>
         )}
       </header>
 
@@ -604,6 +623,11 @@ export default function AdminDealers() {
             ))}
           </ul>
         </section>
+      )}
+      {!readOnly && (
+        <AdminDrawer open={adding} onClose={() => setAdding(false)} kicker="Dealers" title="Add a dealer" line="One store and its first login. Many at once: Import customers.">
+          <AddCustomerForm key={addKey} onClose={() => setAdding(false)} onLinks={setLinks} />
+        </AdminDrawer>
       )}
     </div>
   );

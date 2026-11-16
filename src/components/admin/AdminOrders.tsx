@@ -32,7 +32,6 @@ import Link from "next/link";
 import { useMemo, useRef, useState, type FormEvent } from "react";
 import ShapeIcon from "@/components/brand/ShapeIcon";
 import { trapTab, useDrawer } from "@/components/shop/useDrawer";
-import { ROLE_LABEL } from "@/content/admin";
 import { formatCarat, metals, productById, productHref } from "@/content/catalog";
 import { stoneById, stoneTitle } from "@/content/diamonds";
 import { caratTotal, pieceCount, useOrders, type CartLine, type PaymentMethod, type PlacedOrder } from "@/lib/cart";
@@ -67,6 +66,7 @@ import {
 } from "@/lib/orderStatus";
 import { linePrice, linesTotal } from "@/lib/pricing";
 import { useStaff } from "@/lib/staff";
+import { useRoleBook } from "@/lib/staffAdmin";
 import { useNow } from "@/lib/useNow";
 import { useAdminAccess } from "./AdminShell";
 import s from "./admin.module.css";
@@ -548,6 +548,7 @@ export default function AdminOrders() {
   const access = useAdminAccess();
   const readOnly = access !== "edit";
   const staff = useStaff();
+  const { label: roleLabel } = useRoleBook();
   const now = useNow();
   const siteOrders = useOrders();
   const workMap = useOrderWorkMap();
@@ -562,7 +563,7 @@ export default function AdminOrders() {
   const [openNumber, setOpenNumber] = useState<string | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
 
-  const by = staff?.name ? `${staff.name}, ${ROLE_LABEL[staff.role]}` : staff ? ROLE_LABEL[staff.role] : "Surreal";
+  const by = staff?.name ? `${staff.name}, ${roleLabel(staff.role)}` : staff ? roleLabel(staff.role) : "Surreal";
 
   // Sample orders are dated back from the top of the hour, so their numbers hold steady through the day.
   const hour = Math.floor(now / 36e5) * 36e5;

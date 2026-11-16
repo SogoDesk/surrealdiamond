@@ -23,7 +23,6 @@ import Link from "next/link";
 import { useMemo } from "react";
 import ShapeIcon from "@/components/brand/ShapeIcon";
 import { categories, products } from "@/content/catalog";
-import { ROLE_LABEL } from "@/content/admin";
 import { SHAPES, SHAPE_LABEL, stones } from "@/content/diamonds";
 import { useOrders } from "@/lib/cart";
 import { useCustomers } from "@/lib/customers";
@@ -31,6 +30,7 @@ import { AGING_LABEL, AGING_ORDER, formatMoney, sampleReceivables } from "@/lib/
 import { useMemoReports, useMemos, useUnavailable } from "@/lib/memo";
 import { m2oSize, useCustomRequests, useM2ORequests } from "@/lib/requests";
 import { useStaff } from "@/lib/staff";
+import { useRoleBook } from "@/lib/staffAdmin";
 import { useNow } from "@/lib/useNow";
 import { BarList, ChartCard, ShareBar, type BarRow } from "./OverviewCharts";
 import s from "./admin.module.css";
@@ -54,6 +54,7 @@ const AGING_TONE: Record<string, string> = { current: "neutral", d30: "age1", d6
 
 export default function AdminOverview() {
   const staff = useStaff();
+  const { label: roleLabel } = useRoleBook();
   const orders = useOrders();
   const memos = useMemos();
   const reports = useMemoReports();
@@ -128,7 +129,7 @@ export default function AdminOverview() {
     <div className={s.page}>
       <header className={s.pageHead}>
         <div>
-          <p className={s.kicker}>{ROLE_LABEL[staff.role]}</p>
+          <p className={s.kicker}>{roleLabel(staff.role)}</p>
           <h1 className={s.pageTitle}>Console overview</h1>
           <p className={s.pageLine}>Stock, receivables and dealer activity at a glance. Stones and invoices are sample data until RightClick is connected.</p>
         </div>

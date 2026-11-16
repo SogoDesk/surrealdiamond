@@ -12,8 +12,9 @@
  * text only) and color (light, navy); the photograph; eyebrow, title, italic
  * words, message, offer code, button and where it leads, small print; and
  * when it shows: after how many seconds, to whom, how often it returns, and
- * the start and end dates (New York time). A view-only role sees the form
- * disabled.
+ * the start and end dates (New York time). A photograph can be uploaded to
+ * see it in the preview; publishing with it waits for file storage (M1). A
+ * view-only role sees the form disabled.
  */
 
 import Image from "next/image";
@@ -22,6 +23,7 @@ import { useState } from "react";
 import { PromoCard } from "@/components/home/PromoPopup";
 import { SITE_LINKS } from "@/content/admin";
 import { DEFAULT_PROMO, nyToday, promoStatus, publishPromo, usePromo, type Promo, type PromoAudience, type PromoLayout, type PromoRepeat, type PromoStatus, type PromoTone } from "@/lib/promo";
+import { UploadPhotoTiles, photoLine, useRevokeOnUnmount, type PickedPhoto } from "./AdminAdd";
 import { useAdminAccess } from "./AdminShell";
 import s from "./admin.module.css";
 
@@ -73,6 +75,12 @@ export default function AdminPromo() {
   const [draft, setDraft] = useState<Promo>(live);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [upload, setUpload] = useState<PickedPhoto | null>(null);
+  const [useUpload, setUseUpload] = useState(false);
+  const [upError, setUpError] = useState("");
+  useRevokeOnUnmount([upload]);
+  const withUpload = useUpload && upload && draft.layout !== "text";
+  const shown = withUpload ? { ...draft, image: upload.url } : draft;
 
   const set = <K extends keyof Promo>(k: K, v: Promo[K]) => {
     setDraft((d) => ({ ...d, [k]: v }));
@@ -141,12 +149,39 @@ export default function AdminPromo() {
                 <span className={s.label}>Photograph</span>
                 <div className={`${s.pickGrid} ${s.pickGridSquare}`} role="radiogroup" aria-label="Photograph">
                   {IMAGES.map((src) => (
-                    <button key={src} type="button" role="radio" aria-checked={draft.image === src} className={s.pickImg} onClick={() => set("image", src)} disabled={readOnly}>
+                    <button
+                      key={src}
+                      type="button"
+                      role="radio"
+                      aria-checked={!withUpload && draft.image === src}
+                      className={s.pickImg}
+                      onClick={() => {
+                        set("image", src);
+                        setUseUpload(false);
+                      }}
+                      disabled={readOnly}
+                    >
                       <Image src={src} alt="" width={120} height={120} sizes="80px" />
                     </button>
                   ))}
+                  {!readOnly && (
+                    <UploadPhotoTiles
+                      picked={upload}
+                      selected={Boolean(withUpload)}
+                      onPick={(p) => {
+                        setUpload(p);
+                        setUseUpload(true);
+                      }}
+                      onSelect={() => setUseUpload(true)}
+                      onError={setUpError}
+                      label="Photograph"
+                      square
+                    />
+                  )}
                 </div>
-                <span className={s.muted}>From Surreal&apos;s photography and banner library. Uploads arrive with file storage.</span>
+                {upload && <span className={photoLine(upload, 800, 800).small ? s.warnText : s.muted}>{photoLine(upload, 800, 800).text}</span>}
+                {upError && <span className={s.error}>{upError}</span>}
+                <span className={s.muted}>From Surreal&apos;s photography and banner library, or upload one to see it in the preview.</span>
               </div>
             )}
           </section>
@@ -249,7 +284,7 @@ export default function AdminPromo() {
             </div>
             <div className={s.promoScrim} aria-hidden />
             <div className={s.promoCard}>
-              <PromoCard promo={draft} onClose={() => undefined} />
+              <PromoCard promo={shown} onClose={() => undefined} />
             </div>
           </div>
           {!readOnly && (
@@ -264,7 +299,12 @@ export default function AdminPromo() {
                   Published. The homepage shows it now.
                 </p>
               )}
-              <button type="button" className={s.primary} onClick={publish} disabled={!changed}>
+              {withUpload && (
+                <p className={s.warnNote} role="status">
+                  The preview shows the uploaded photograph. Storing uploads arrives with file storage (M1), so publish with a library photograph for now.
+                </p>
+              )}
+              <button type="button" className={s.primary} onClick={publish} disabled={!changed || Boolean(withUpload)}>
                 {changed ? "Publish" : "Published"}
               </button>
               <button type="button" className={s.textBtn} onClick={() => setDraft(live)} disabled={!changed}>

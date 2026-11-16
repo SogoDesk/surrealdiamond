@@ -16,7 +16,12 @@
  * stone on the diamond page. Search by stock or certificate, shape and
  * status filters, CSV. The feed is the sample until RightClick (C-07).
  *
- * A view-only role sees the switches disabled.
+ * Adding: Add a piece or Add a stone opens a form in a side drawer, and
+ * Upload pieces or Upload stones checks a whole Excel or CSV file
+ * (AdminAdd, AdminImport). Both check everything now and save once the
+ * inventory backend is connected (B2, B3).
+ *
+ * A view-only role sees the switches disabled and no Add or Upload.
  */
 
 import Image from "next/image";
@@ -32,6 +37,8 @@ import { setMerch, useMerch } from "@/lib/merch";
 import { clearMetalOption, setMetalOption, useMetalOptions, withMetals } from "@/lib/metals";
 import { useMemos } from "@/lib/memo";
 import { useOrderWorkMap, workOf } from "@/lib/orderStatus";
+import { AddPieceForm, AddStoneForm, AdminDrawer } from "./AdminAdd";
+import { ImportWizard, PIECE_UPLOAD, STONE_UPLOAD } from "./AdminImport";
 import { useAdminAccess } from "./AdminShell";
 import s from "./admin.module.css";
 
@@ -62,6 +69,9 @@ export default function AdminInventory() {
   const [shape, setShape] = useState<StoneShape | "all">("all");
   const [status, setStatus] = useState<StoneStatus | "all">("all");
   const [shown, setShown] = useState(PAGE);
+  const [adding, setAdding] = useState(false);
+  const [addKey, setAddKey] = useState(0);
+  const [uploading, setUploading] = useState(false);
 
   const orderWork = useOrderWorkMap();
   const ordered = useMemo(() => new Set(orders.filter((o) => workOf(orderWork, o).status !== "cancelled").flatMap((o) => o.lines.map((l) => l.stoneId).filter(Boolean) as string[])), [orders, orderWork]);
@@ -102,6 +112,12 @@ export default function AdminInventory() {
     setTab(t);
     setQ("");
     setShown(PAGE);
+    setUploading(false);
+  };
+
+  const openAdd = () => {
+    setAddKey((k) => k + 1);
+    setAdding(true);
   };
 
   const exportCsv = () =>
@@ -127,6 +143,16 @@ export default function AdminInventory() {
             placeholder.
           </p>
         </div>
+        {!readOnly && (
+          <span className={s.cardTools}>
+            <button type="button" className={s.secondaryBtn} onClick={() => setUploading((v) => !v)} aria-expanded={uploading}>
+              {tab === "jewelry" ? "Upload pieces" : "Upload stones"}
+            </button>
+            <button type="button" className={s.primary} onClick={openAdd}>
+              {tab === "jewelry" ? "Add a piece" : "Add a stone"}
+            </button>
+          </span>
+        )}
       </header>
 
       <div className={s.tabs} role="tablist" aria-label="Inventory">
@@ -137,6 +163,8 @@ export default function AdminInventory() {
           Diamonds <span>{stones.length}</span>
         </button>
       </div>
+
+      {uploading && !readOnly && (tab === "jewelry" ? <ImportWizard key="pieces" spec={PIECE_UPLOAD} onClose={() => setUploading(false)} /> : <ImportWizard key="stones" spec={STONE_UPLOAD} onClose={() => setUploading(false)} />)}
 
       <div className={s.toolbar}>
         <label className={s.search}>
@@ -329,6 +357,18 @@ export default function AdminInventory() {
         <button type="button" className={s.more} onClick={() => setShown((n) => n + PAGE)}>
           Show {PAGE} more
         </button>
+      )}
+
+      {!readOnly && (
+        <AdminDrawer
+          open={adding}
+          onClose={() => setAdding(false)}
+          kicker="Inventory"
+          title={tab === "jewelry" ? "Add a piece" : "Add a stone"}
+          line={tab === "jewelry" ? "One piece for the catalog. Many at once: Upload pieces." : "One stone by its certificate. A whole feed: Upload stones."}
+        >
+          {tab === "jewelry" ? <AddPieceForm key={addKey} onClose={() => setAdding(false)} /> : <AddStoneForm key={addKey} onClose={() => setAdding(false)} />}
+        </AdminDrawer>
       )}
     </div>
   );

@@ -9,6 +9,8 @@
  * caption leads, a switch to show or hide it, and up and down to set the
  * order. Add one by picking a wide and a phone photograph from the media
  * library, a label and a link.
+ * A photograph can also be uploaded from this computer to check its size
+ * and crop; adding a banner with it waits for file storage (M1).
  * Added banners can be deleted; Surreal's own set can only be switched off.
  * At least one banner stays on. Changes show on the homepage at once.
  */
@@ -19,6 +21,7 @@ import { useState, type FormEvent } from "react";
 import { SITE_LINKS as LINKS } from "@/content/admin";
 import { heroSlides } from "@/content/home";
 import { move, resetMerch, setMerch, useMerch, type Banner } from "@/lib/merch";
+import { UploadPhotoTiles, photoLine, useRevokeOnUnmount, type PickedPhoto } from "./AdminAdd";
 import { useAdminAccess } from "./AdminShell";
 import s from "./admin.module.css";
 
@@ -26,6 +29,10 @@ import s from "./admin.module.css";
 const DESKTOP = ["hero-3984-wide", "sb-3594", "sb-3999-copy", "sb-3750", "sb-4038", "sb-3462", "sb-3424", "sb-4002-copy", "sb-4024", "sb-3990", "sb-3996", "sb-3631", "sb-3666", "sb-4074"].map((n) => `/media/photos/${n}.webp`);
 const PHONE = ["hero-3984-tall", "sb-3594", "sb-3999-copy", "sb-3750", "sb-4038", "sb-3462", "sb-3602", "sb-3605", "sb-3592", "sb-4091", "sb-4117", "sb-3962"].map((n) => `/media/photos/${n}.webp`);
 const own = new Set(heroSlides.map((b) => b.id));
+/** The picker's value while an uploaded photograph is chosen. */
+const UPLOADED = "uploaded";
+const WIDE_MIN = [1920, 820] as const;
+const PHONE_MIN = [1080, 1350] as const;
 
 export default function AdminBanners() {
   const readOnly = useAdminAccess() !== "edit";
@@ -36,6 +43,11 @@ export default function AdminBanners() {
   const [label, setLabel] = useState("");
   const [href, setHref] = useState(LINKS[0].href);
   const [error, setError] = useState("");
+  const [upDesk, setUpDesk] = useState<PickedPhoto | null>(null);
+  const [upPhone, setUpPhone] = useState<PickedPhoto | null>(null);
+  const [upError, setUpError] = useState("");
+  useRevokeOnUnmount([upDesk, upPhone]);
+  const usesUpload = desktop === UPLOADED || phone === UPLOADED;
 
   const write = (next: Banner[]) => setMerch((m) => ({ ...m, banners: next }));
   const onCount = banners.filter((b) => b.active).length;
@@ -43,6 +55,7 @@ export default function AdminBanners() {
 
   const add = (e: FormEvent) => {
     e.preventDefault();
+    if (usesUpload) return;
     if (label.trim().length < 3) {
       setError("Describe the photograph in a few words; it is the caption, and screen readers read it aloud.");
       return;
@@ -91,7 +104,9 @@ export default function AdminBanners() {
                   <Image src={src} alt="" width={240} height={103} sizes="160px" />
                 </button>
               ))}
+              <UploadPhotoTiles picked={upDesk} selected={desktop === UPLOADED} onPick={(p) => { setUpDesk(p); setDesktop(UPLOADED); }} onSelect={() => setDesktop(UPLOADED)} onError={setUpError} label="Wide photograph" />
             </div>
+            {upDesk && <span className={photoLine(upDesk, ...WIDE_MIN).small ? s.warnText : s.muted}>{photoLine(upDesk, ...WIDE_MIN).text}</span>}
           </div>
           <div className={s.field}>
             <span className={s.label}>Phone photograph</span>
@@ -101,7 +116,10 @@ export default function AdminBanners() {
                   <Image src={src} alt="" width={120} height={150} sizes="80px" />
                 </button>
               ))}
+              <UploadPhotoTiles picked={upPhone} selected={phone === UPLOADED} onPick={(p) => { setUpPhone(p); setPhone(UPLOADED); }} onSelect={() => setPhone(UPLOADED)} onError={setUpError} label="Phone photograph" square />
             </div>
+            {upPhone && <span className={photoLine(upPhone, ...PHONE_MIN).small ? s.warnText : s.muted}>{photoLine(upPhone, ...PHONE_MIN).text}</span>}
+            {upError && <span className={s.error}>{upError}</span>}
           </div>
           <div className={s.formRow}>
             <label className={s.field}>
@@ -120,9 +138,16 @@ export default function AdminBanners() {
               </select>
             </label>
           </div>
-          <p className={s.muted}>Photographs come from Surreal&apos;s campaign library. Uploads arrive with file storage (M1).</p>
+          <p className={s.muted}>
+            Choose from Surreal&apos;s campaign library, or upload one to check its size and crop. Wide photographs need at least {WIDE_MIN.join(" × ")} px, phone ones {PHONE_MIN.join(" × ")} px.
+          </p>
+          {usesUpload && (
+            <p className={s.warnNote} role="status">
+              An uploaded photograph is chosen. It is checked here, but storing uploads arrives with file storage (M1), so the banner cannot be added with it yet. Choose library photographs to add it now.
+            </p>
+          )}
           <div>
-            <button type="submit" className={s.primary}>
+            <button type="submit" className={s.primary} disabled={usesUpload}>
               Add to the homepage
             </button>
           </div>

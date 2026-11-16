@@ -96,8 +96,8 @@ const asText = (v: unknown): string => {
 
 export const MAX_ROWS = 5000;
 
-/** Read the first sheet of a workbook, or a CSV, into rows of text; empty rows dropped. */
-export async function readTable(file: File): Promise<string[][]> {
+/** Read the first sheet of a workbook, or a CSV, into rows of text; empty rows dropped. The inventory uploads pass their own noun and row limit. */
+export async function readTable(file: File, { noun = "customer", max = MAX_ROWS }: { noun?: string; max?: number } = {}): Promise<string[][]> {
   const name = file.name.toLowerCase();
   let rows: unknown[][];
   if (name.endsWith(".xlsx")) {
@@ -109,8 +109,8 @@ export async function readTable(file: File): Promise<string[][]> {
     throw new Error("Choose an Excel workbook (.xlsx) or a CSV file. Older .xls files: open them in Excel and save as .xlsx first.");
   }
   const text = rows.map((r) => r.map(asText)).filter((r) => r.some(Boolean));
-  if (text.length < 2) throw new Error("The file has no customer rows under its header row.");
-  if (text.length - 1 > MAX_ROWS) throw new Error(`The file has ${text.length - 1} rows. Import up to ${MAX_ROWS} at a time.`);
+  if (text.length < 2) throw new Error(`The file has no ${noun} rows under its header row.`);
+  if (text.length - 1 > max) throw new Error(`The file has ${(text.length - 1).toLocaleString("en-US")} rows. Upload up to ${max.toLocaleString("en-US")} at a time.`);
   return text;
 }
 
