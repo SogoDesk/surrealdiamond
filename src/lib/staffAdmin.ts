@@ -250,6 +250,7 @@ const EVENT_LABEL: Record<string, string> = {
   staff_removed: "Removed",
   link: "Setup link",
   staff_link: "Setup link",
+  staff_password: "Password set",
   "role-created": "Role created",
   role_created: "Role created",
   "role-edited": "Role edited",
