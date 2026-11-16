@@ -22,7 +22,8 @@ import { signIn } from "@/lib/dealer";
 import { checkPassword } from "@/lib/auth";
 import PasswordRules from "./PasswordRules";
 import { INVITE_HOURS, completeSetup, createSetupLink, lookupSetupLink, type Customer, type SetupLink } from "@/lib/customers";
-import { authApi, toDealerSession } from "@/lib/api/auth";
+import { authApi } from "@/lib/api/auth";
+import { applySession } from "@/lib/api/applySession";
 import { API_AUTH, ApiRequestError } from "@/lib/api/client";
 import { account, brand } from "@/content/site";
 import s from "./account.module.css";
@@ -162,9 +163,7 @@ function SetupForm() {
     if (API_AUTH) {
       try {
         const me = await authApi.setup(token, password);
-        const session = toDealerSession(me);
-        if (session) {
-          signIn(session);
+        if (applySession(me)) {
           router.push(`${account.dashboard}?welcome=1`);
         } else {
           router.push("/admin");

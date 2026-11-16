@@ -8,9 +8,10 @@
  */
 
 import { useEffect } from "react";
-import { clearDealer, signIn } from "@/lib/dealer";
-import { clearStaff, setStaffSession } from "@/lib/staff";
-import { authApi, toDealerSession, toStaffSession } from "./auth";
+import { clearDealer } from "@/lib/dealer";
+import { clearStaff } from "@/lib/staff";
+import { applySession } from "./applySession";
+import { authApi } from "./auth";
 import { API_AUTH, ApiRequestError } from "./client";
 
 export default function SessionSync() {
@@ -21,10 +22,7 @@ export default function SessionSync() {
       .me()
       .then((me) => {
         if (!live) return;
-        const dealer = toDealerSession(me);
-        if (dealer) signIn(dealer);
-        else clearDealer();
-        setStaffSession(toStaffSession(me));
+        applySession(me);
       })
       .catch((error: unknown) => {
         // Only a clear "not signed in" ends the copy: a network blip does not.

@@ -11,10 +11,10 @@ import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import PasswordRules from "@/components/account/PasswordRules";
 import { checkPassword } from "@/lib/auth";
-import { authApi, toStaffSession, type Me, type MfaBegin } from "@/lib/api/auth";
+import { applySession } from "@/lib/api/applySession";
+import { authApi, type Me, type MfaBegin } from "@/lib/api/auth";
 import { ApiRequestError } from "@/lib/api/client";
 import { clearDealer } from "@/lib/dealer";
-import { setStaffSession } from "@/lib/staff";
 import s from "./admin.module.css";
 
 type Step =
@@ -51,7 +51,7 @@ export default function StaffGate() {
       setCode("");
       setStep(following);
     } else {
-      setStaffSession(toStaffSession(me));
+      applySession(me);
     }
   };
 
@@ -63,7 +63,7 @@ export default function StaffGate() {
         const following = nextStep(me);
         if (!live) return;
         if (following) setStep(following);
-        else setStaffSession(toStaffSession(me));
+        else applySession(me);
       })
       .catch(() => {
         if (live) setStep({ name: "password" });

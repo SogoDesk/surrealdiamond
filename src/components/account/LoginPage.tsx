@@ -26,7 +26,8 @@ import SiteChrome from "@/components/chrome/SiteChrome";
 import ContactDrawer from "@/components/chrome/ContactDrawer";
 import Footer from "@/components/sections/Footer";
 import { DEMO_DEALER, signIn, useDealer } from "@/lib/dealer";
-import { authApi, toDealerSession } from "@/lib/api/auth";
+import { authApi } from "@/lib/api/auth";
+import { applySession } from "@/lib/api/applySession";
 import { API_AUTH, ApiRequestError } from "@/lib/api/client";
 import { verifyPassword } from "@/lib/auth";
 import { INVITE_HOURS, createSetupLink, customerByEmail, ensureTestPasswords, type Customer, type SetupLink } from "@/lib/customers";
@@ -114,9 +115,7 @@ function LoginForm() {
       setBusy(true);
       try {
         const me = await authApi.login(address, password);
-        const session = toDealerSession(me);
-        if (session) {
-          signIn(session);
+        if (applySession(me)) {
           router.push(next);
         } else {
           router.push("/admin");
