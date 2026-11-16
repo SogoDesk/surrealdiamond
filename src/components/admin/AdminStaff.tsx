@@ -16,9 +16,10 @@
  *
  * Only an administrator creates or edits roles and gives or takes away the
  * Administrator role; HR (edit on this module) adds people and assigns the
- * other roles; Manager views. The list lives in this browser until the staff
- * backend (B6) serves it (lib/staffAdmin.ts). On the live site the real
- * logins are on the server, and roles change there until then (staff:role).
+ * other roles; Manager views. On the live site everything goes through the
+ * API (useStaffDirectory), which applies the same rules and keeps the
+ * activity log; a setup link the API could not email is shown here once, to
+ * pass on. In the preview it lives in this browser.
  */
 
 import { useMemo, useState } from "react";
@@ -26,26 +27,13 @@ import { adminModules, type Access } from "@/content/admin";
 import { API_AUTH } from "@/lib/api/client";
 import { downloadCsv } from "@/lib/csv";
 import { useStaff } from "@/lib/staff";
-import {
-  EVENT_LABEL,
-  canDo,
-  removeStaffUser,
-  resendStaffLink,
-  setStaffRole,
-  setStaffStatus,
-  useRoleBook,
-  useStaffAdmin,
-  type RoleDef,
-  type StaffStatus,
-  type StaffUser,
-} from "@/lib/staffAdmin";
+import { canDo, eventLabel, useRoleBook, useStaffDirectory, type RoleDef, type StaffLink, type StaffStatus, type StaffUser } from "@/lib/staffAdmin";
 import { AddStaffForm, AdminDrawer, RoleForm } from "./AdminAdd";
 import { useAdminAccess } from "./AdminShell";
 import s from "./admin.module.css";
 
 const ACCESS: Record<Access, string> = { edit: "Edit", view: "View", none: "None" };
-const STATUS: Record<StaffStatus, string> = { active: "Active", invited: "Setup link sent", disabled: "Disabled" };
-const SIGNINS = new Set(["signin"]);
+const STATUS: Record<StaffStatus, string> = { active: "Active", invited: "Setup link sent", not_invited: "No link yet", disabled: "Disabled" };
 
 const when = (iso?: string) => (iso ? new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "");
 
@@ -55,7 +43,11 @@ export default function AdminStaff() {
   const staff = useStaff();
   const access = useAdminAccess();
   const book = useRoleBook();
-  const { users, events } = useStaffAdmin();
+  const dir = useStaffDirectory();
+  const { users, events } = dir;
+  const [links, setLinks] = useState<StaffLink[]>([]);
+  const [copied, setCopied] = useState("");
+  const [busy, setBusy] = useState("");
   const [drawer, setDrawer] = useState<Drawer>({ kind: "person" });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerKey, setDrawerKey] = useState(0);
@@ -64,7 +56,6 @@ export default function AdminStaff() {
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState<StaffStatus | "all">("all");
   const [confirmId, setConfirmId] = useState("");
-  const [log, setLog] = useState<"all" | "signins" | "changes">("all");
   const [logShown, setLogShown] = useState(25);
 
   const myRole = staff?.role ?? "";
@@ -78,13 +69,16 @@ export default function AdminStaff() {
     setDrawerOpen(true);
   };
   const close = () => setDrawerOpen(false);
-  const run = (fn: () => void) => {
+  const run = async (key: string, fn: () => Promise<unknown>) => {
+    setBusy(key);
     try {
-      fn();
+      const out = await fn();
+      if (out && typeof out === "object" && "url" in out) setLinks((l) => [out as StaffLink, ...l.filter((x) => x.email !== (out as StaffLink).email)]);
       setError("");
     } catch (e) {
       setError(e instanceof Error ? e.message : "That change could not be made.");
     }
+    setBusy("");
     setConfirmId("");
   };
 
@@ -95,8 +89,11 @@ export default function AdminStaff() {
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [users, q, roleFilter, statusFilter]);
 
-  const shownEvents = events.filter((e) => log === "all" || (log === "signins" ? SIGNINS.has(e.kind) : !SIGNINS.has(e.kind)));
-  const holders = (id: string) => users.filter((u) => u.role === id).length;
+  const shownEvents = events;
+  const roles = dir.roles;
+  const roleOf = (id: string) => roles.find((r) => r.id === id);
+  const labelOf = (id: string) => roleOf(id)?.label ?? book.label(id);
+  const holders = (id: string) => roleOf(id)?.people ?? users.filter((u) => u.role === id).length;
   const count = (st: StaffStatus) => users.filter((u) => u.status === st).length;
 
   return (
@@ -123,16 +120,54 @@ export default function AdminStaff() {
         </span>
       </header>
 
-      <p className={API_AUTH ? s.warnNote : s.note}>
-        {API_AUTH
-          ? "The staff list, roles and activity here are kept in this browser until the staff backend is connected. People added here cannot sign in yet, and custom roles apply once the server knows them. Real logins and their roles are on the server today."
-          : "Preview: the list starts with the five test accounts and keeps every change in this browser. Sign in as anyone on it from Signed in as at the top."}
-      </p>
+      {!API_AUTH && <p className={s.note}>Preview: the list starts with the five test accounts and keeps every change in this browser. Sign in as anyone on it from Signed in as at the top.</p>}
 
-      {error && (
+      {(error || dir.error) && (
         <p className={s.error} role="alert">
-          {error}
+          {error || dir.error}
         </p>
+      )}
+
+      {links.length > 0 && (
+        <section className={s.linkBox} aria-labelledby="links-title" role="status">
+          <div className={s.cardHead}>
+            <div>
+              <h2 id="links-title" className={s.cardTitle}>
+                {links.length === 1 ? "Setup link to pass on" : `${links.length} setup links to pass on`}
+              </h2>
+              <p className={s.muted}>Email is not set up yet, so send these yourself, privately. Each works once; a new link stops the old one. They are not shown again after you leave this page.</p>
+            </div>
+            <button type="button" className={s.textBtn} onClick={() => setLinks([])}>
+              Close
+            </button>
+          </div>
+          <ul className={s.linkList}>
+            {links.map((l) => (
+              <li key={l.email}>
+                <span>
+                  <strong>{l.name}</strong>
+                  <span className={s.muted}>
+                    {l.email}, works until {when(l.expiresAt)}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className={s.textBtn}
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(l.url);
+                      setCopied(l.email);
+                    } catch {
+                      setCopied("");
+                    }
+                  }}
+                >
+                  {copied === l.email ? "Copied" : "Copy link"}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       <dl className={`${s.stats} ${s.statsFour}`}>
@@ -141,7 +176,7 @@ export default function AdminStaff() {
             ["People", users.length, `${count("active")} active`],
             ["Setup link sent", count("invited"), "Not signed in yet"],
             ["Disabled", count("disabled"), "Cannot sign in"],
-            ["Roles", book.list.length, `${book.list.filter((r) => !r.builtIn).length} custom`],
+            ["Roles", roles.length, `${roles.filter((r) => !r.builtIn).length} custom`],
           ] as const
         ).map(([label, value, line]) => (
           <div key={label} className={s.stat}>
@@ -170,7 +205,7 @@ export default function AdminStaff() {
           </label>
           <select className={s.select} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} aria-label="Role">
             <option value="all">Every role</option>
-            {book.list.map((r) => (
+            {roles.map((r) => (
               <option key={r.id} value={r.id}>
                 {r.label}
               </option>
@@ -180,9 +215,10 @@ export default function AdminStaff() {
             <option value="all">Any status</option>
             <option value="active">Active</option>
             <option value="invited">Setup link sent</option>
+            <option value="not_invited">No link yet</option>
             <option value="disabled">Disabled</option>
           </select>
-          <span className={s.count}>{list.length} people</span>
+          <span className={s.count}>{dir.loading ? "Loading" : `${list.length} people`}</span>
         </div>
         <div className={s.tableWrap}>
           <table className={s.table}>
@@ -202,7 +238,7 @@ export default function AdminStaff() {
               {list.length === 0 && (
                 <tr>
                   <td colSpan={6} className={s.notesCell}>
-                    {users.length ? "No one matches." : API_AUTH ? "No one added in this browser yet. The live logins are on the server until the staff backend lists them here." : "No one on the list."}
+                    {dir.loading ? "Loading the staff list." : users.length ? "No one matches." : "No one on the list."}
                   </td>
                 </tr>
               )}
@@ -218,12 +254,17 @@ export default function AdminStaff() {
                           {self && <span className={s.youChip}>You</span>}
                         </strong>
                         <span className={s.muted}>{u.email}</span>
+                        {(u.twoFactor || (u.openSessions ?? 0) > 0) && (
+                          <span className={s.muted}>
+                            {[u.twoFactor ? "Two factor on" : "", (u.openSessions ?? 0) > 0 ? `${u.openSessions} open ${u.openSessions === 1 ? "session" : "sessions"}` : ""].filter(Boolean).join(", ")}
+                          </span>
+                        )}
                       </span>
                     </th>
                     <td>
                       {editable ? (
-                        <select className={s.selectSm} value={u.role} aria-label={`Role for ${u.name}`} onChange={(e) => run(() => setStaffRole(u.id, e.target.value, by))}>
-                          {book.list
+                        <select className={s.selectSm} value={u.role} aria-label={`Role for ${u.name}`} disabled={busy === u.id} onChange={(e) => run(u.id, () => dir.setRole(u, e.target.value, by))}>
+                          {roles
                             .filter((r) => r.id === u.role || may.giveRole(r.id))
                             .map((r) => (
                               <option key={r.id} value={r.id}>
@@ -233,8 +274,8 @@ export default function AdminStaff() {
                         </select>
                       ) : (
                         <>
-                          {book.label(u.role)}
-                          {!book.list.find((r) => r.id === u.role)?.builtIn && <span className={s.customTag}>Custom</span>}
+                          {labelOf(u.role)}
+                          {roleOf(u.role) && !roleOf(u.role)?.builtIn && <span className={s.customTag}>Custom</span>}
                         </>
                       )}
                     </td>
@@ -247,22 +288,22 @@ export default function AdminStaff() {
                     <td>
                       <span className={s.personCell}>
                         <span>{new Date(u.addedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
-                        <span className={s.muted}>{u.addedBy}</span>
+                        {u.addedBy && <span className={s.muted}>{u.addedBy}</span>}
                       </span>
                     </td>
                     <td>
                       {editable && (
                         <span className={s.cardTools}>
-                          {u.status === "invited" && (
-                            <button type="button" className={s.textBtn} onClick={() => run(() => resendStaffLink(u.id, by))}>
-                              Resend link
+                          {u.status !== "disabled" && (
+                            <button type="button" className={s.textBtn} disabled={busy === u.id} onClick={() => run(u.id, () => dir.resend(u, by))}>
+                              {u.status === "active" ? "Send reset link" : "Send setup link"}
                             </button>
                           )}
-                          <button type="button" className={s.textBtn} onClick={() => run(() => setStaffStatus(u.id, u.status === "disabled" ? "active" : "disabled", by))}>
+                          <button type="button" className={s.textBtn} disabled={busy === u.id} onClick={() => run(u.id, () => dir.setStatus(u, u.status === "disabled" ? "active" : "disabled", by))}>
                             {u.status === "disabled" ? "Enable" : "Disable"}
                           </button>
                           {confirmId === u.id ? (
-                            <button type="button" className={s.textBtn} onClick={() => run(() => removeStaffUser(u.id, by))}>
+                            <button type="button" className={s.textBtn} disabled={busy === u.id} onClick={() => run(u.id, () => dir.remove(u, by))}>
                               <span className={s.warnText}>Confirm remove</span>
                             </button>
                           ) : (
@@ -297,7 +338,7 @@ export default function AdminStaff() {
           )}
         </div>
         <ul className={s.roles}>
-          {book.list.map((r) => (
+          {roles.map((r) => (
             <li key={r.id} className={s.roleCard} data-current={myRole === r.id ? "" : undefined}>
               <strong>
                 {r.label}
@@ -334,7 +375,7 @@ export default function AdminStaff() {
             <thead>
               <tr>
                 <th scope="col">Module</th>
-                {book.list.map((r) => (
+                {roles.map((r) => (
                   <th key={r.id} scope="col">
                     {r.label}
                   </th>
@@ -348,8 +389,8 @@ export default function AdminStaff() {
                     <strong>{m.label}</strong>
                     <span className={s.muted}>{m.line}</span>
                   </th>
-                  {book.list.map((r) => {
-                    const a = book.access(r.id, m.id);
+                  {roles.map((r) => {
+                    const a: Access = m.id === "overview" ? "view" : (r.access[m.id] ?? "none");
                     return (
                       <td key={r.id}>
                         <span className={s.accessChip} data-access={a}>
@@ -371,13 +412,13 @@ export default function AdminStaff() {
             <h2 id="activity-title" className={s.cardTitle}>
               Activity
             </h2>
-            <p className={s.muted}>{API_AUTH ? "Changes made in this browser. Sign ins on the live site are recorded by the server and show here once the staff backend is connected." : "Sign ins and changes in this browser, newest first."}</p>
+            <p className={s.muted}>{API_AUTH ? "Staff sign ins, failed sign ins and every change, newest first." : "Sign ins and changes in this browser, newest first."}</p>
           </div>
           {events.length > 0 && (
             <button
               type="button"
               className={s.textBtn}
-              onClick={() => downloadCsv("surreal staff activity.csv", [["When", "Who", "What", "About", "Detail"], ...shownEvents.map((e) => [e.at, e.by, EVENT_LABEL[e.kind], e.subject, e.detail])])}
+              onClick={() => downloadCsv("surreal staff activity.csv", [["When", "Who", "What", "About", "Detail"], ...shownEvents.map((e) => [e.at, e.by, eventLabel(e.kind), e.subject, e.detail])])}
             >
               Download CSV
             </button>
@@ -391,7 +432,7 @@ export default function AdminStaff() {
               ["changes", "Changes"],
             ] as const
           ).map(([k, label]) => (
-            <button key={k} type="button" role="radio" aria-checked={log === k} className={s.segBtn} onClick={() => setLog(k)}>
+            <button key={k} type="button" role="radio" aria-checked={dir.show === k} className={s.segBtn} onClick={() => dir.setShow(k)}>
               {label}
             </button>
           ))}
@@ -415,7 +456,7 @@ export default function AdminStaff() {
                   <tr key={e.id}>
                     <td className="tabular">{when(e.at)}</td>
                     <td>{e.by}</td>
-                    <td>{EVENT_LABEL[e.kind]}</td>
+                    <td className={e.kind === "signin_failed" ? s.warnText : undefined}>{eventLabel(e.kind)}</td>
                     <td>{e.subject}</td>
                     <td className={s.notesCell}>{e.detail}</td>
                   </tr>
@@ -424,8 +465,15 @@ export default function AdminStaff() {
             </table>
           </div>
         )}
-        {shownEvents.length > logShown && (
-          <button type="button" className={s.more} onClick={() => setLogShown((n) => n + 25)}>
+        {(shownEvents.length > logShown || dir.hasMore) && (
+          <button
+            type="button"
+            className={s.more}
+            onClick={() => {
+              setLogShown((n) => n + 25);
+              if (shownEvents.length <= logShown + 25 && dir.hasMore) dir.loadMore();
+            }}
+          >
             Show 25 more
           </button>
         )}
@@ -439,7 +487,11 @@ export default function AdminStaff() {
           title={drawer.kind === "role" ? (drawer.role ? `Edit ${drawer.role.label}` : "Create a role") : "Add a staff member"}
           line={drawer.kind === "role" ? "A name, and what it may open." : "Their name, work email and one role. They set their own password."}
         >
-          {drawer.kind === "role" ? <RoleForm key={drawerKey} role={drawer.role} by={by} onClose={close} /> : <AddStaffForm key={drawerKey} by={by} myRole={myRole} onClose={close} />}
+          {drawer.kind === "role" ? (
+            <RoleForm key={drawerKey} role={drawer.role} dir={dir} by={by} onClose={close} />
+          ) : (
+            <AddStaffForm key={drawerKey} dir={dir} by={by} myRole={myRole} onClose={close} onLink={(l) => setLinks((all) => [l, ...all.filter((x) => x.email !== l.email)])} />
+          )}
         </AdminDrawer>
       )}
     </div>

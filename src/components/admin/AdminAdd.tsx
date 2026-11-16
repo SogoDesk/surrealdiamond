@@ -25,7 +25,7 @@ import { FIELDS, checkRows, type Mapping } from "@/lib/customerImport";
 import { API_AUTH } from "@/lib/api/client";
 import { createSetupLink, importCustomers, useCustomers } from "@/lib/customers";
 import { readPiece, readStone, type PieceField, type PieceRow, type StoneField, type StoneRow } from "@/lib/inventoryImport";
-import { addStaffUser, canDo, deleteRole, saveRole, useRoleBook, type RoleDef, type StaffUser } from "@/lib/staffAdmin";
+import { canDo, type RoleDef, type StaffDirectory, type StaffLink } from "@/lib/staffAdmin";
 import s from "./admin.module.css";
 
 /* The drawer */
@@ -719,28 +719,34 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
  * Adds a person to the staff list with one role. Roles offered are the ones
  * the signed-in person may give (only an administrator gives Administrator).
  */
-export function AddStaffForm({ by, myRole, onClose }: { by: string; myRole: string; onClose: () => void }) {
-  const book = useRoleBook();
+export function AddStaffForm({ dir, by, myRole, onClose, onLink }: { dir: StaffDirectory; by: string; myRole: string; onClose: () => void; onLink: (link: StaffLink) => void }) {
   const may = canDo(myRole, "edit");
-  const roles = book.list.filter((r) => may.giveRole(r.id));
+  const roles = dir.roles.filter((r) => may.giveRole(r.id));
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState(roles.find((r) => r.id === "sales")?.id ?? roles[0]?.id ?? "");
   const [issues, setIssues] = useState<{ name?: string; email?: string; form?: string }>({});
-  const [added, setAdded] = useState<StaffUser | null>(null);
+  const [added, setAdded] = useState<{ name: string; email: string; role: string; link: boolean } | null>(null);
+  const [busy, setBusy] = useState(false);
   const form = useRef<HTMLFormElement>(null);
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     const next: { name?: string; email?: string; form?: string } = {};
     if (name.trim().length < 2) next.name = "Enter their full name";
     if (!EMAIL.test(email.trim())) next.email = email.trim() ? `"${email.trim()}" is not an email address` : "Enter their work email";
     if (!Object.keys(next).length) {
+      setBusy(true);
       try {
-        setAdded(addStaffUser({ name, email, role }, by));
+        const res = await dir.add({ name: name.trim(), email: email.trim().toLowerCase(), role }, by);
+        if (res.link) onLink(res.link);
+        setAdded({ name: name.trim(), email: email.trim().toLowerCase(), role, link: Boolean(res.link) });
       } catch (err) {
-        next.email = err instanceof Error ? err.message : "They could not be added.";
+        const fields = (err as { fields?: Record<string, string> }).fields;
+        if (fields?.email || fields?.name) Object.assign(next, { email: fields.email, name: fields.name });
+        else next.email = err instanceof Error ? err.message : "They could not be added.";
       }
+      setBusy(false);
     }
     setIssues(next);
     if (Object.keys(next).length) firstError(form.current);
@@ -751,11 +757,13 @@ export function AddStaffForm({ by, myRole, onClose }: { by: string; myRole: stri
       <section className={s.step} role="status">
         <h3 className={s.stepTitle}>Added to the staff list</h3>
         <p className={s.muted}>
-          {added.name}, {added.email}, as {book.label(added.role)}. They are listed as Setup link sent.
+          {added.name}, {added.email}, as {dir.roles.find((r) => r.id === added.role)?.label ?? added.role}.
         </p>
-        <p className={API_AUTH ? s.warnNote : s.note}>
+        <p className={API_AUTH && added.link ? s.warnNote : s.note}>
           {API_AUTH
-            ? "Kept in this browser until the staff backend is connected: no link has gone out and they cannot sign in yet. Until then the team adds people on the server."
+            ? added.link
+              ? "Email is not set up yet, so their setup link is on the Staff and roles page, under Setup link to pass on. Send it to them privately."
+              : "Their setup link is on its way by email. They choose their own password."
             : "Preview: choose them in Signed in as at the top to see the console with their role."}
         </p>
         <div className={s.cardTools}>
@@ -805,8 +813,8 @@ export function AddStaffForm({ by, myRole, onClose }: { by: string; myRole: stri
       </Section>
       <p className={s.note}>No password is set here. They choose their own from a setup link, and can turn on two factor sign in themselves.</p>
       <div className={s.cardTools}>
-        <button type="submit" className={s.primary}>
-          Add to the staff list
+        <button type="submit" className={s.primary} disabled={busy}>
+          {busy ? "Adding" : "Add to the staff list"}
         </button>
         <button type="button" className={s.textBtn} onClick={onClose}>
           Cancel
@@ -821,28 +829,31 @@ export function AddStaffForm({ by, myRole, onClose }: { by: string; myRole: stri
 const ACCESS_LABEL: Record<Access, string> = { edit: "Edit", view: "View", none: "None" };
 
 /** A custom role: its name, what it is for, and its access to each module, started from an existing role if wanted. */
-export function RoleForm({ role, by, onClose }: { role?: RoleDef; by: string; onClose: () => void }) {
-  const book = useRoleBook();
+export function RoleForm({ role, dir, by, onClose }: { role?: RoleDef; dir: StaffDirectory; by: string; onClose: () => void }) {
   const blank = Object.fromEntries(adminModules.map((m) => [m.id, m.id === "overview" ? "view" : "none"])) as Record<string, Access>;
   const [label, setLabel] = useState(role?.label ?? "");
   const [line, setLine] = useState(role?.line ?? "");
   const [access, setAccess] = useState<Record<string, Access>>(role?.access ?? blank);
   const [issues, setIssues] = useState<{ label?: string; form?: string }>({});
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [busy, setBusy] = useState(false);
   const form = useRef<HTMLFormElement>(null);
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     const next: { label?: string; form?: string } = {};
     if (label.trim().length < 2) next.label = "Give the role a name";
     if (!next.label) {
+      setBusy(true);
       try {
-        saveRole({ id: role?.id, label, line: line || "Custom role", access }, by);
+        await dir.saveRole({ id: role?.id, label: label.trim(), line: line.trim() || "Custom role", access }, by);
+        setBusy(false);
         onClose();
         return;
       } catch (err) {
         next.label = err instanceof Error ? err.message : "The role could not be saved.";
       }
+      setBusy(false);
     }
     setIssues(next);
     firstError(form.current);
@@ -863,12 +874,12 @@ export function RoleForm({ role, by, onClose }: { role?: RoleDef; by: string; on
               className={s.select}
               defaultValue=""
               onChange={(e) => {
-                const from = book.list.find((r) => r.id === e.target.value);
+                const from = dir.roles.find((r) => r.id === e.target.value);
                 if (from) setAccess({ ...from.access });
               }}
             >
               <option value="">No access except Overview</option>
-              {book.list.map((r) => (
+              {dir.roles.map((r) => (
                 <option key={r.id} value={r.id}>
                   {r.label}
                 </option>
@@ -909,8 +920,8 @@ export function RoleForm({ role, by, onClose }: { role?: RoleDef; by: string; on
         </p>
       )}
       <div className={s.cardTools}>
-        <button type="submit" className={s.primary}>
-          {role ? "Save the role" : "Create the role"}
+        <button type="submit" className={s.primary} disabled={busy}>
+          {busy ? "Saving" : role ? "Save the role" : "Create the role"}
         </button>
         <button type="button" className={s.textBtn} onClick={onClose}>
           Cancel
@@ -924,9 +935,9 @@ export function RoleForm({ role, by, onClose }: { role?: RoleDef; by: string; on
           <button
             type="button"
             className={s.dangerBtn}
-            onClick={() => {
+            onClick={async () => {
               try {
-                deleteRole(role.id, by);
+                await dir.deleteRole(role.id, by);
                 onClose();
               } catch (err) {
                 setIssues({ form: err instanceof Error ? err.message : "The role could not be deleted." });

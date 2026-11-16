@@ -277,6 +277,112 @@ export interface paths {
         patch: operations["PeopleController_update"];
         trace?: never;
     };
+    "/api/v1/admin/staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Everyone with a console login */
+        get: operations["StaffAdminController_list"];
+        put?: never;
+        /** Add a staff member and send their setup link */
+        post: operations["StaffAdminController_add"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/staff/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Remove a login that has never been used */
+        delete: operations["StaffAdminController_remove"];
+        options?: never;
+        head?: never;
+        /** Change a role, or disable or enable a login */
+        patch: operations["StaffAdminController_update"];
+        trace?: never;
+    };
+    "/api/v1/admin/staff/{userId}/link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** A new setup or reset link */
+        post: operations["StaffAdminController_link"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every role with its access and how many have it */
+        get: operations["StaffAdminController_roles"];
+        put?: never;
+        /** Create a role (administrators) */
+        post: operations["StaffAdminController_createRole"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/roles/{roleId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a custom role no one has (administrators) */
+        delete: operations["StaffAdminController_deleteRole"];
+        options?: never;
+        head?: never;
+        /** Edit a custom role (administrators) */
+        patch: operations["StaffAdminController_updateRole"];
+        trace?: never;
+    };
+    "/api/v1/admin/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Staff sign ins and console changes, newest first */
+        get: operations["StaffAdminController_activity"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -371,8 +477,8 @@ export interface operations {
                             }[];
                         } | null;
                         staff: {
-                            /** @enum {string} */
-                            role: "administrator" | "finance" | "hr" | "sales" | "manager";
+                            role: string;
+                            roleLabel: string;
                             /** @enum {string} */
                             mfa: "off" | "ok" | "code_required";
                             access: {
@@ -442,8 +548,8 @@ export interface operations {
                             }[];
                         } | null;
                         staff: {
-                            /** @enum {string} */
-                            role: "administrator" | "finance" | "hr" | "sales" | "manager";
+                            role: string;
+                            roleLabel: string;
                             /** @enum {string} */
                             mfa: "off" | "ok" | "code_required";
                             access: {
@@ -605,8 +711,8 @@ export interface operations {
                             }[];
                         } | null;
                         staff: {
-                            /** @enum {string} */
-                            role: "administrator" | "finance" | "hr" | "sales" | "manager";
+                            role: string;
+                            roleLabel: string;
                             /** @enum {string} */
                             mfa: "off" | "ok" | "code_required";
                             access: {
@@ -666,8 +772,8 @@ export interface operations {
                             }[];
                         } | null;
                         staff: {
-                            /** @enum {string} */
-                            role: "administrator" | "finance" | "hr" | "sales" | "manager";
+                            role: string;
+                            roleLabel: string;
                             /** @enum {string} */
                             mfa: "off" | "ok" | "code_required";
                             access: {
@@ -727,8 +833,8 @@ export interface operations {
                             }[];
                         } | null;
                         staff: {
-                            /** @enum {string} */
-                            role: "administrator" | "finance" | "hr" | "sales" | "manager";
+                            role: string;
+                            roleLabel: string;
                             /** @enum {string} */
                             mfa: "off" | "ok" | "code_required";
                             access: {
@@ -989,6 +1095,284 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    StaffAdminController_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        id: string;
+                        name: string;
+                        email: string;
+                        role: string;
+                        roleLabel: string;
+                        /** @enum {string} */
+                        status: "not_invited" | "invited" | "active" | "disabled";
+                        lastSignInAt: string | null;
+                        addedAt: string;
+                        addedBy: string | null;
+                        twoFactor: boolean;
+                        openSessions: number;
+                    }[];
+                };
+            };
+        };
+    };
+    StaffAdminController_add: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                    email: string;
+                    role: string;
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        linkSent: boolean;
+                        link: {
+                            url: string;
+                            expiresAt: string;
+                        } | null;
+                        id: string;
+                    };
+                };
+            };
+        };
+    };
+    StaffAdminController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StaffAdminController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    role?: string;
+                    /** @enum {string} */
+                    status?: "active" | "disabled";
+                };
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StaffAdminController_link: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        linkSent: boolean;
+                        link: {
+                            url: string;
+                            expiresAt: string;
+                        } | null;
+                    };
+                };
+            };
+        };
+    };
+    StaffAdminController_roles: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        id: string;
+                        label: string;
+                        line: string;
+                        builtIn: boolean;
+                        people: number;
+                        access: {
+                            [key: string]: "edit" | "view" | "none";
+                        };
+                    }[];
+                };
+            };
+        };
+    };
+    StaffAdminController_createRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    label: string;
+                    line?: string;
+                    access: {
+                        [key: string]: "edit" | "view" | "none";
+                    };
+                };
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        id: string;
+                    };
+                };
+            };
+        };
+    };
+    StaffAdminController_deleteRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StaffAdminController_updateRole: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                roleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    label?: string;
+                    line?: string;
+                    access?: {
+                        [key: string]: "edit" | "view" | "none";
+                    };
+                };
+            };
+        };
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    StaffAdminController_activity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        items: {
+                            id: string;
+                            at: string;
+                            kind: string;
+                            by: string;
+                            subject: string;
+                            detail: string;
+                        }[];
+                        total: number;
+                        page: number;
+                        pageSize: number;
+                        pages: number;
+                    };
+                };
             };
         };
     };

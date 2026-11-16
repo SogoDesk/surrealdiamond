@@ -49,4 +49,6 @@ export const toDealerSession = (me: Me): DealerSession | null =>
 
 /** Two-factor is optional, but staff who have it on are in only once they pass a code. */
 export const toStaffSession = (me: Me): StaffSession | null =>
-  me.staff && me.staff.mfa !== "code_required" ? { role: me.staff.role, name: me.user.name, email: me.user.email } : null;
+  me.staff && me.staff.mfa !== "code_required"
+    ? { role: me.staff.role, roleLabel: me.staff.roleLabel, access: me.staff.access as Record<string, "edit" | "view" | "none">, name: me.user.name, email: me.user.email }
+    : null;

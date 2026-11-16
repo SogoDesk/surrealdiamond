@@ -19,15 +19,19 @@
  * assigns the other roles and disables or removes people. No one disables or
  * removes themselves, and the last active administrator stays.
  *
- * Kept in this browser like the rest of the console until the staff backend
- * (B6) serves it. In the preview the list starts with the five test accounts;
- * on the live site it starts empty, because real staff come from the server.
+ * On the live site (API_AUTH) useStaffDirectory reads and changes all of it
+ * through the API (/admin/staff, /admin/roles, /admin/activity), which
+ * applies the same rules on the server and records the activity itself. In
+ * the preview it is kept in this browser and starts with the five test
+ * accounts. Both give the screens the same shape.
  */
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ROLES, ROLE_LABEL, ROLE_LINE, adminModules, type Access } from "@/content/admin";
 import { TEST_STAFF } from "@/content/testAccounts";
 import { API_AUTH } from "./api/client";
+import { staffApi, type ApiRole, type ApiStaff } from "./api/staffAdmin";
+import { useStaff } from "./staff";
 import { createLocalStore } from "./localStore";
 
 export interface CustomRole {
@@ -41,7 +45,7 @@ export interface CustomRole {
   updatedAt?: string;
 }
 
-export type StaffStatus = "active" | "invited" | "disabled";
+export type StaffStatus = "active" | "invited" | "not_invited" | "disabled";
 
 export interface StaffUser {
   id: string;
@@ -54,6 +58,9 @@ export interface StaffUser {
   lastSignInAt?: string;
   /** One of the preview's test accounts. */
   test?: boolean;
+  /** From the API: two factor turned on, and sessions open now. */
+  twoFactor?: boolean;
+  openSessions?: number;
 }
 
 export type StaffEventKind = "signin" | "added" | "role" | "disabled" | "enabled" | "removed" | "link" | "role-created" | "role-edited" | "role-deleted";
@@ -63,7 +70,8 @@ export interface StaffEvent {
   at: string;
   /** Who did it, "Name, Role"; for a sign in, the person. */
   by: string;
-  kind: StaffEventKind;
+  /** A StaffEventKind in the preview; the API's kinds (staff_added, signin_failed, ...) on the live site. */
+  kind: string;
   /** Who or what it was about: a person's email or a role's name. */
   subject: string;
   detail: string;
@@ -102,25 +110,38 @@ export interface RoleDef {
   line: string;
   builtIn: boolean;
   access: Record<string, Access>;
+  /** From the API: how many people have it. */
+  people?: number;
 }
 
 export const BUILT_IN_ROLES: RoleDef[] = ROLES.map((r) => ({ id: r, label: ROLE_LABEL[r], line: ROLE_LINE[r], builtIn: true, access: Object.fromEntries(adminModules.map((m) => [m.id, m.access[r]])) }));
 export const isBuiltInRole = (id: string) => (ROLES as readonly string[]).includes(id);
 const labelOf = (a: StaffAdmin, id: string) => BUILT_IN_ROLES.find((r) => r.id === id)?.label ?? a.roles.find((r) => r.id === id)?.label ?? "Unknown role";
 
+/**
+ * Role names and access for the console's locks. On the live site the signed
+ * in person's own role comes from the API's session (its name and access, as
+ * the server enforces them), so a custom role works without listing every
+ * role; in the preview, from this browser's roles.
+ */
 export function useRoleBook() {
   const { roles } = useStaffAdmin();
+  const staff = useStaff();
   return useMemo(() => {
-    const list: RoleDef[] = [...BUILT_IN_ROLES, ...roles.map((r) => ({ id: r.id, label: r.label, line: r.line, builtIn: false, access: r.access }))];
+    const list: RoleDef[] = [...BUILT_IN_ROLES, ...(API_AUTH ? [] : roles.map((r) => ({ id: r.id, label: r.label, line: r.line, builtIn: false, access: r.access })))];
     const by = new Map(list.map((r) => [r.id, r]));
+    const mine = API_AUTH && staff?.access ? staff : null;
     return {
       list,
-      label: (id: string) => by.get(id)?.label ?? "Unknown role",
+      label: (id: string) => (mine && id === mine.role && mine.roleLabel) || by.get(id)?.label || (id === staff?.role && staff?.roleLabel) || "Unknown role",
       line: (id: string) => by.get(id)?.line ?? "",
-      access: (id: string, moduleId: string): Access => (moduleId === "overview" && by.has(id) ? "view" : (by.get(id)?.access[moduleId] ?? "none")),
-      exists: (id: string) => by.has(id),
+      access: (id: string, moduleId: string): Access => {
+        if (mine && id === mine.role) return moduleId === "overview" ? "view" : (mine.access?.[moduleId] ?? "none");
+        return moduleId === "overview" && by.has(id) ? "view" : (by.get(id)?.access[moduleId] ?? "none");
+      },
+      exists: (id: string) => by.has(id) || id === staff?.role,
     };
-  }, [roles]);
+  }, [roles, staff]);
 }
 
 /** Creates a role, or saves one already there. Names are unique, ignoring case. */
@@ -214,15 +235,197 @@ export function canDo(myRole: string, staffAccess: Access) {
   };
 }
 
-export const EVENT_LABEL: Record<StaffEventKind, string> = {
+const EVENT_LABEL: Record<string, string> = {
   signin: "Signed in",
+  signin_failed: "Sign in failed",
   added: "Added",
+  staff_added: "Added",
   role: "Role changed",
+  staff_role: "Role changed",
   disabled: "Disabled",
+  staff_disabled: "Disabled",
   enabled: "Enabled",
+  staff_enabled: "Enabled",
   removed: "Removed",
+  staff_removed: "Removed",
   link: "Setup link",
+  staff_link: "Setup link",
   "role-created": "Role created",
+  role_created: "Role created",
   "role-edited": "Role edited",
+  role_edited: "Role edited",
   "role-deleted": "Role deleted",
+  role_deleted: "Role deleted",
 };
+export const eventLabel = (kind: string) => EVENT_LABEL[kind] ?? kind;
+const SIGN_INS = new Set(["signin", "signin_failed"]);
+
+/* One interface for the staff screens, live or preview */
+
+export type ActivityShow = "all" | "signins" | "changes";
+
+/** A setup link the API made but could not email: shown to the administrator to pass on. */
+export interface StaffLink {
+  name: string;
+  email: string;
+  url: string;
+  expiresAt: string;
+}
+
+export interface StaffDirectory {
+  live: boolean;
+  loading: boolean;
+  error: string;
+  users: StaffUser[];
+  roles: RoleDef[];
+  events: StaffEvent[];
+  show: ActivityShow;
+  setShow: (show: ActivityShow) => void;
+  hasMore: boolean;
+  loadMore: () => void;
+  add: (input: { name: string; email: string; role: string }, by: string) => Promise<{ user: StaffUser | null; link: StaffLink | null }>;
+  setRole: (user: StaffUser, role: string, by: string) => Promise<void>;
+  setStatus: (user: StaffUser, status: "active" | "disabled", by: string) => Promise<void>;
+  resend: (user: StaffUser, by: string) => Promise<StaffLink | null>;
+  remove: (user: StaffUser, by: string) => Promise<void>;
+  saveRole: (input: { id?: string; label: string; line: string; access: Record<string, Access> }, by: string) => Promise<void>;
+  deleteRole: (id: string, by: string) => Promise<void>;
+}
+
+function useLocalDirectory(): StaffDirectory {
+  const a = useStaffAdmin();
+  const book = useRoleBook();
+  const [show, setShow] = useState<ActivityShow>("all");
+  const events = a.events.filter((e) => show === "all" || (show === "signins" ? SIGN_INS.has(e.kind) : !SIGN_INS.has(e.kind)));
+  const wrap = <T,>(fn: () => T) => new Promise<T>((resolve, reject) => {
+    try {
+      resolve(fn());
+    } catch (e) {
+      reject(e);
+    }
+  });
+  return {
+    live: false,
+    loading: false,
+    error: "",
+    users: a.users,
+    roles: book.list,
+    events,
+    show,
+    setShow,
+    hasMore: false,
+    loadMore: () => undefined,
+    add: (input, by) => wrap(() => ({ user: addStaffUser(input, by), link: null })),
+    setRole: (u, role, by) => wrap(() => setStaffRole(u.id, role, by)),
+    setStatus: (u, status, by) => wrap(() => setStaffStatus(u.id, status, by)),
+    resend: (u, by) => wrap(() => (resendStaffLink(u.id, by), null)),
+    remove: (u, by) => wrap(() => removeStaffUser(u.id, by)),
+    saveRole: (input, by) => wrap(() => void saveRole(input, by)),
+    deleteRole: (id, by) => wrap(() => deleteRole(id, by)),
+  };
+}
+
+const fromApiUser = (u: ApiStaff): StaffUser => ({
+  id: u.id,
+  name: u.name,
+  email: u.email,
+  role: u.role,
+  status: u.status,
+  addedAt: u.addedAt,
+  addedBy: u.addedBy ?? "",
+  lastSignInAt: u.lastSignInAt ?? undefined,
+  twoFactor: u.twoFactor,
+  openSessions: u.openSessions,
+});
+const fromApiRole = (r: ApiRole): RoleDef => ({ id: r.id, label: r.label, line: r.line, builtIn: r.builtIn, access: r.access, people: r.people });
+const linkOf = (u: { name: string; email: string }, link: { url: string; expiresAt: string } | null): StaffLink | null => (link ? { name: u.name, email: u.email, ...link } : null);
+
+function useApiDirectory(): StaffDirectory {
+  const [users, setUsers] = useState<StaffUser[]>([]);
+  const [roles, setRoles] = useState<RoleDef[]>([]);
+  const [events, setEvents] = useState<StaffEvent[]>([]);
+  const [pages, setPages] = useState(1);
+  const [at, setAt] = useState(1);
+  const [show, setShowState] = useState<ActivityShow>("all");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  /** Bumped after every change, to read the list and the log again. */
+  const [version, setVersion] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    Promise.all([staffApi.list(), staffApi.roles()]).then(
+      ([u, r]) => {
+        if (!alive) return;
+        setUsers(u.map(fromApiUser));
+        setRoles(r.map(fromApiRole));
+        setError("");
+        setLoading(false);
+      },
+      (e: unknown) => {
+        if (!alive) return;
+        setError(e instanceof Error ? e.message : "The staff list could not be loaded.");
+        setLoading(false);
+      },
+    );
+    return () => {
+      alive = false;
+    };
+  }, [version]);
+
+  useEffect(() => {
+    let alive = true;
+    staffApi.activity(show, at).then(
+      (res) => {
+        if (!alive) return;
+        setEvents((prev) => (at === 1 ? res.items : [...prev, ...res.items]));
+        setPages(res.pages);
+      },
+      () => undefined,
+    );
+    return () => {
+      alive = false;
+    };
+  }, [show, at, version]);
+
+  const after = async <T,>(fn: () => Promise<T>): Promise<T> => {
+    const out = await fn();
+    setAt(1);
+    setVersion((v) => v + 1);
+    return out;
+  };
+
+  return {
+    live: true,
+    loading,
+    error,
+    users,
+    roles,
+    events,
+    show,
+    setShow: (next) => {
+      setShowState(next);
+      setAt(1);
+    },
+    hasMore: at < pages,
+    loadMore: () => setAt((n) => n + 1),
+    add: (input) =>
+      after(async () => {
+        const res = await staffApi.add(input);
+        return { user: null, link: linkOf(input, res.link) };
+      }),
+    setRole: (u, role) => after(() => staffApi.update(u.id, { role })),
+    setStatus: (u, status) => after(() => staffApi.update(u.id, { status })),
+    resend: (u) => after(async () => linkOf(u, (await staffApi.link(u.id)).link)),
+    remove: (u) => after(() => staffApi.remove(u.id)),
+    saveRole: (input) =>
+      after(async () => {
+        if (input.id) await staffApi.updateRole(input.id, { label: input.label, line: input.line, access: input.access });
+        else await staffApi.createRole({ label: input.label, line: input.line, access: input.access });
+      }),
+    deleteRole: (id) => after(() => staffApi.deleteRole(id)),
+  };
+}
+
+/** The staff screens' data and actions: the API on the live site, this browser in the preview. */
+export const useStaffDirectory: () => StaffDirectory = API_AUTH ? useApiDirectory : useLocalDirectory;

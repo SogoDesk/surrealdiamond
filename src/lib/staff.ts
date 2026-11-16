@@ -15,6 +15,9 @@ import { recordSignIn } from "./staffAdmin";
 
 export interface StaffSession {
   role: string;
+  /** From the API: the role's name and its access per module, as the server enforces them. */
+  roleLabel?: string;
+  access?: Record<string, "edit" | "view" | "none">;
   name?: string;
   email?: string;
 }
