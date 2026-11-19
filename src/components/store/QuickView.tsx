@@ -9,8 +9,8 @@
  * Inside: the views (the render in the chosen metal, the turntable, other
  * angles) with thumbnails; the category, name, design line and reference;
  * the price box; metal (only the metals the piece exists in, BRD R-12),
- * total carat weight, quantity and special instructions; Add to cart and
- * Buy now (straight to checkout) for a signed-in dealer, Log in to order
+ * total carat weight, quantity and special instructions; Add to cart (then
+ * the Go to Cart / Continue Shopping popup) for a signed-in dealer, Log in to order
  * otherwise, and the wishlist heart; Ask a question and View full details
  * (the product page with the same metal and carat); the next day delivery
  * countdown and Certificates on request. No ring size or other sizing, and
@@ -27,7 +27,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
-import { useRouter } from "next/navigation";
 import { defaultSelection, renderForSelection, type PieceSelection } from "@/components/shop/filters";
 import Placeholder from "@/components/shop/Placeholder";
 import { trapTab, useDrawer } from "@/components/shop/useDrawer";
@@ -119,7 +118,6 @@ function Body({ product, initial, onClose }: { product: Product; initial: PieceS
   const [note, setNote] = useState("");
   const [at, setAt] = useState(0);
   const [added, setAdded] = useState(false);
-  const router = useRouter();
 
   const primary = renderForSelection(product, selection);
   const video = product.video ? videoSrc(product.video) : null;
@@ -148,14 +146,9 @@ function Body({ product, initial, onClose }: { product: Product; initial: PieceS
   };
   const line = () => ({ productId: product.id, metal: selection.metal, carat: selection.carat, size: null, qty, note: note.trim() });
   const add = () => {
-    addToCart(line());
+    // The popup offers Go to Cart or Continue Shopping; Buy now is gone (client feedback, November 2026).
+    addToCart(line(), { popup: true });
     setAdded(true);
-  };
-  /** Buy now: the piece goes into the cart and the dealer straight to checkout. */
-  const buyNow = () => {
-    addToCart(line(), { quiet: true });
-    onClose();
-    router.push(account.checkout);
   };
   /** Ask a question: the drawer closes first, then the contact drawer opens. */
   const ask = () => {
@@ -238,20 +231,20 @@ function Body({ product, initial, onClose }: { product: Product; initial: PieceS
         </div>
       </div>
 
-      <div className={s.field}>
-        <p className={s.label}>
-          Total carat weight <span>{formatCarat(selection.carat)}</span>
-        </p>
-        <div className={s.row}>
-          {caratOptions[product.category].map((ct) => (
-            <button key={ct} type="button" className={s.chip} aria-pressed={selection.carat === ct} onClick={() => choose({ carat: ct })}>
-              {formatCarat(ct)}
-            </button>
-          ))}
+      {/* Total carat weight and quantity share one line (client feedback, November 2026). */}
+      <div className={s.caratQty}>
+        <div className={s.field}>
+          <p className={s.label}>
+            Total carat weight <span>{formatCarat(selection.carat)}</span>
+          </p>
+          <div className={s.row}>
+            {caratOptions[product.category].map((ct) => (
+              <button key={ct} type="button" className={s.chip} aria-pressed={selection.carat === ct} onClick={() => choose({ carat: ct })}>
+                {formatCarat(ct)}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-
-      <div className={s.fieldRow}>
         <div className={s.field}>
           <span className={s.label} id={`qv-qty-${product.id}`}>
             Quantity
@@ -271,18 +264,17 @@ function Body({ product, initial, onClose }: { product: Product; initial: PieceS
       </div>
 
       <label className={s.field}>
-        <span className={s.label}>Special instructions</span>
-        <textarea className={s.textarea} rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Engraving, delivery date, anything we should know" />
+        <span className={s.label}>
+          Special instructions <span className={s.optional}>Optional</span>
+        </span>
+        <textarea className={s.textarea} rows={3} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Anything else we should know about?" />
       </label>
 
       <div className={s.doors}>
         {dealer ? (
           <>
-            <button type="button" className={s.primary} onClick={add}>
+            <button type="button" className={`${s.primary} ${s.wide}`} onClick={add}>
               {added ? "Added to cart" : "Add to cart"}
-            </button>
-            <button type="button" className={s.buy} onClick={buyNow}>
-              Buy now
             </button>
           </>
         ) : (

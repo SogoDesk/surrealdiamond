@@ -69,9 +69,6 @@ video.media { padding: 0; }
 .primary:hover { background: var(--ink-hover); color: var(--ink-hover-fg); }
 .secondary { box-shadow: inset 0 0 0 1px var(--ink); color: var(--ink); }
 .secondary:hover { background: var(--mist); }
-.buy { display: inline-flex; align-items: center; justify-content: center; height: 50px; padding: 0 18px; border-radius: 999px; background: var(--sky); color: var(--ink); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; transition: filter 0.3s var(--ease-surreal); }
-.buy:hover { filter: brightness(0.94); }
-.buy:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .wide { grid-column: 1 / -1; }
 .notice { margin: -6px 0 0; padding: 10px 14px; border-radius: 12px; background: var(--mist); font-size: 0.8125rem; color: var(--ink); }
 .notice a { text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
@@ -80,3 +77,16 @@ video.media { padding: 0; }
 .facts strong { font-weight: 600; color: var(--ink); }
 
 .iconBtn:focus-visible, .heart:focus-visible, .thumb:focus-visible, .metal:focus-visible, .chip:focus-visible, .select:focus-visible, .stepper button:focus-visible, .primary:focus-visible, .secondary:focus-visible, .priceLink:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+
+/* Total carat weight and quantity on one line (client feedback, November 2026); stacked again on a narrow phone. */
+.caratQty { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 14px 32px; }
+/* Both labels on one line, both controls the same height, the quantity box against the right edge. */
+.caratQty .label { display: flex; align-items: center; min-height: 22px; }
+.caratQty .stepper { width: 200px; height: 38px; }
+
+/* Special instructions (client feedback, November 2026): a plain hint, marked optional, with a clearer hover and focus. */
+.label .optional { margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: var(--porcelain); font-size: 0.6875rem; letter-spacing: 0.02em; text-transform: none; color: var(--stone); }
+.textarea { min-height: 84px; transition: box-shadow 0.2s var(--ease-surreal), background-color 0.2s var(--ease-surreal); }
+.textarea::placeholder { color: var(--stone); opacity: 0.75; }
+.textarea:hover { box-shadow: inset 0 0 0 1px #b9c2ca; }
+.textarea:focus { outline: none; box-shadow: inset 0 0 0 1px var(--ink), 0 0 0 3px color-mix(in srgb, var(--sky) 45%, transparent); }
