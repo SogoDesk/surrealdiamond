@@ -25,6 +25,9 @@ export const SHAPE_LABEL: Record<StoneShape, string> = {
   heart: "Heart",
 };
 
+/** The shapes the diamond search's shape filter offers, in Surreal's order (client feedback, November 2026). Other shapes can still be in the feed. */
+export const SEARCH_SHAPES: StoneShape[] = ["round", "radiant", "emerald", "oval", "cushion", "pear", "princess"];
+
 export const COLORS = ["D", "E", "F", "G", "H", "I", "J"] as const;
 export const CLARITIES = ["FL", "IF", "VVS1", "VVS2", "VS1", "VS2", "SI1"] as const;
 export const GRADES = ["Ideal", "Excellent", "Very Good", "Good"] as const;

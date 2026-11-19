@@ -23,7 +23,8 @@
 .sampleNote { margin: 0; max-width: 360px; padding: 12px 16px; border-radius: 12px; background: var(--mist); font-size: 0.8125rem; line-height: 1.5; color: var(--graphite); }
 .sampleNote strong { color: var(--ink); font-weight: 600; }
 
-.shapes { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 8px; }
+/* One equal column per shape, however many the filter offers, so the row always fills the width. */
+.shapes { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; }
 @media (max-width: 1023px) { .shapes { display: flex; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; } .shapes::-webkit-scrollbar { display: none; } .shape { flex: 0 0 84px; } }
 .shape { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px 10px; border-radius: var(--radius-md); background: var(--white); box-shadow: inset 0 0 0 1px var(--hairline); font-size: 0.75rem; color: var(--graphite); transition: box-shadow 0.3s var(--ease-surreal), background-color 0.3s var(--ease-surreal), color 0.3s var(--ease-surreal); }
 .shape:hover { box-shadow: inset 0 0 0 1px #b9c2ca; color: var(--ink); }
@@ -46,12 +47,12 @@
 .caratBox .range { padding: 0; box-shadow: none; }
 .filterLabel { display: flex; align-items: center; justify-content: space-between; font-size: 0.6875rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--stone); }
 .filterClear { font-size: 0.6875rem; letter-spacing: 0.04em; text-transform: none; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 2px; }
-.scale { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); border-radius: 10px; box-shadow: inset 0 0 0 1px var(--hairline); overflow: hidden; }
-.scaleCell { height: 36px; font-size: 0.75rem; color: var(--graphite); border-left: 1px solid var(--hairline); transition: background-color 0.2s var(--ease-surreal), color 0.2s var(--ease-surreal); }
-.scaleCell:first-child { border-left: 0; }
-.scaleCell:hover { background: var(--porcelain); color: var(--ink); }
-.scaleCell[aria-pressed="true"] { background: var(--ink); color: var(--porcelain); border-color: var(--ink); }
-.scaleCell:focus-visible { outline: 2px solid var(--sky); outline-offset: -2px; }
+/* Color and clarity: bordered pills, the same as the cut chips beside them, wrapping when the box is narrow. */
+.scale { display: flex; flex-wrap: wrap; gap: 6px; }
+.scaleCell { min-width: 40px; height: 34px; padding: 0 12px; border-radius: 999px; background: var(--white); box-shadow: inset 0 0 0 1px var(--hairline); font-size: 0.75rem; color: var(--graphite); white-space: nowrap; transition: background-color 0.2s var(--ease-surreal), color 0.2s var(--ease-surreal); }
+.scaleCell:hover { box-shadow: inset 0 0 0 1px #b9c2ca; color: var(--ink); }
+.scaleCell[aria-pressed="true"] { background: var(--ink); color: var(--porcelain); box-shadow: none; }
+.scaleCell:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { height: 34px; padding: 0 12px; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--hairline); font-size: 0.75rem; color: var(--graphite); background: var(--white); transition: background-color 0.2s var(--ease-surreal), color 0.2s var(--ease-surreal); }
 .chip:hover { box-shadow: inset 0 0 0 1px #b9c2ca; color: var(--ink); }
@@ -61,6 +62,17 @@
 .rangeInputs input { flex: 1 1 0; min-width: 0; height: 36px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--porcelain); box-shadow: inset 0 0 0 1px var(--hairline); font: 500 0.875rem var(--font-ui), "Urbanist", sans-serif; color: var(--ink); }
 .rangeInputs input:focus { outline: none; background: var(--white); box-shadow: inset 0 0 0 1px var(--ink); }
 .unit { font-size: 0.75rem; }
+/* From and To boxes: no up and down arrows (client feedback, November 2026). */
+.rangeInputs input[type="number"], .measureRow input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+.rangeInputs input[type="number"]::-webkit-outer-spin-button, .rangeInputs input[type="number"]::-webkit-inner-spin-button,
+.measureRow input[type="number"]::-webkit-outer-spin-button, .measureRow input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+/* Apply Filter: typed values take effect here. */
+.filterForm { margin: 0; }
+.applyRow { display: flex; align-items: center; justify-content: flex-end; gap: 14px; margin-top: 12px; }
+.applyHint { font-size: 0.8125rem; color: var(--graphite); }
+.applyBtn { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 22px; border-radius: 999px; background: var(--white); box-shadow: inset 0 0 0 1px var(--ink); color: var(--ink); font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; transition: background-color 0.3s var(--ease-surreal), color 0.3s var(--ease-surreal); }
+.applyBtn:hover, .applyBtn[data-pending="true"] { background: var(--ink); color: var(--porcelain); }
+.applyBtn:focus-visible { outline: 2px solid var(--sky); outline-offset: 3px; }
 .presets { display: flex; flex-wrap: wrap; gap: 4px; }
 .preset { height: 26px; padding: 0 9px; border-radius: 999px; background: var(--porcelain); font-size: 0.6875rem; color: var(--graphite); }
 .preset:hover { color: var(--ink); background: var(--mist); }
@@ -68,7 +80,8 @@
 
 /* Results */
 .results { position: relative; z-index: 1; padding: 0 0 clamp(56px, 6vw, 96px); background: var(--porcelain); }
-.bar { position: sticky; top: var(--nav-h); z-index: 15; display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 100%; padding: 10px max(var(--gutter), calc((100vw - 1600px) / 2 + var(--gutter))); margin-bottom: 14px; background: color-mix(in srgb, var(--porcelain) 94%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
+/* Not pinned: the bar leaves with the page as the list scrolls (client feedback, November 2026). */
+.bar { position: relative; z-index: 15; display: flex; align-items: center; justify-content: space-between; gap: 12px; max-width: 100%; padding: 10px max(var(--gutter), calc((100vw - 1600px) / 2 + var(--gutter))); margin-bottom: 14px; background: color-mix(in srgb, var(--porcelain) 94%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
 .barLeft { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .count { font-size: 0.875rem; color: var(--ink); }
 .moreBtn { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 999px; background: var(--white); box-shadow: inset 0 0 0 1px var(--hairline); font-size: 0.8125rem; color: var(--ink); }
@@ -221,7 +234,13 @@
 .planLength { right: 16px; top: 50%; transform: translateY(-50%); }
 .planWidth { bottom: 12px; left: 50%; transform: translateX(-50%); }
 .sample { position: absolute; top: 12px; left: 12px; padding: 3px 9px; border-radius: 999px; background: rgba(255, 255, 255, 0.82); font-size: 0.625rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--graphite); }
-.drawerTitleRow { display: flex; flex-direction: column; gap: 6px; }
+/* Carat and shape on the left, the price beside them on the right; the grade chips take the row below. */
+.drawerTitleRow { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 6px 16px; }
+.drawerTitleMain { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.drawerTitleRow .gradeChips { grid-column: 1 / -1; }
+.drawerPrice { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; padding-top: 4px; font-size: 0.75rem; color: var(--stone); text-align: right; }
+.drawerPrice strong { font-family: var(--font-editorial), "Urbanist", "Helvetica Neue", Arial, sans-serif; font-weight: 600; font-size: 1.625rem; line-height: 1.1; color: var(--ink); white-space: nowrap; }
+.drawerPriceLink { font-size: 0.8125rem; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
 .drawerTitle { margin: 0; font-family: var(--font-editorial), "Urbanist", "Helvetica Neue", Arial, sans-serif; font-weight: 500; font-size: 2.25rem; line-height: 1.05; }
 .drawerSub { margin: 0; font-size: 0.8125rem; color: var(--stone); }
 .gradeChips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
@@ -235,10 +254,6 @@
 .infoCard { display: flex; flex-direction: column; gap: 3px; padding: 14px; border-radius: var(--radius-md); background: var(--white); box-shadow: inset 0 0 0 1px var(--hairline); font-size: 0.75rem; color: var(--stone); }
 .infoCard strong { font-weight: 600; font-size: 0.9375rem; color: var(--ink); }
 .infoLabel { font-size: 0.625rem; letter-spacing: 0.18em; text-transform: uppercase; }
-.priceBox { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: var(--radius-md); background: linear-gradient(110deg, var(--mist), var(--beam) 60%, var(--white)); box-shadow: inset 0 0 0 1px #b6ecff; font-size: 0.8125rem; color: var(--graphite); }
-.priceBox > span { display: flex; flex-direction: column; gap: 2px; }
-.priceBox strong { font-family: var(--font-editorial), "Urbanist", "Helvetica Neue", Arial, sans-serif; font-weight: 600; font-size: 1.25rem; color: var(--ink); }
-.priceLink { display: inline-flex; align-items: center; height: 36px; padding: 0 18px; border-radius: 999px; background: var(--ink); color: var(--porcelain); font-size: 0.6875rem; letter-spacing: 0.14em; text-transform: uppercase; flex: 0 0 auto; }
 .notice { margin: 0; padding: 12px 14px; border-radius: 12px; background: #e9f6ee; font-size: 0.8125rem; color: #1f5a3a; }
 .drawerDoors { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .drawerDoors > :only-child { grid-column: 1 / -1; }

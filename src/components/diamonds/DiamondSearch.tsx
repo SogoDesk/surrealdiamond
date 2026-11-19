@@ -50,7 +50,7 @@ import { addStone, useCart } from "@/lib/cart";
 import { useDealer } from "@/lib/dealer";
 import { useUnavailable } from "@/lib/memo";
 import { LEGACY_PHOTO, LEGACY_VT, LEGACY_PHOTO_VT } from "@/components/legacy/transition";
-import { EMPTY, PRICE_SORTS, SORT_LABEL, activeCount, describe, feedOptions, fromParams, hasMeasurements, m2oHref, matches, sortStones, type DiamondQuery, type FeedOptions, type SortKey } from "./query";
+import { DEFAULT_QUERY, EMPTY, PRICE_SORTS, SORT_LABEL, activeCount, describe, feedOptions, fromParams, hasMeasurements, m2oHref, matches, sortStones, type DiamondQuery, type FeedOptions, type SortKey } from "./query";
 import StoneDrawer from "./StoneDrawer";
 import DiamondStory from "./DiamondStory";
 import { scrollToTarget } from "@/lib/scroll";
@@ -99,17 +99,24 @@ function WithParams({ program }: { program?: SearchProgram }) {
   return <SearchView params={params} program={program} />;
 }
 
-/** A range picked on a grade scale: first click sets both ends, the second sets the other end. Only the grades in the feed show (show: their indexes on the scale). */
+/**
+ * A run of grades on a scale, picked one click at a time: a grade outside the
+ * run stretches the run to it, the grade at either end comes off, and a grade
+ * in the middle cuts the run back to it. So D, E and F are three clicks, and
+ * clicking a selected end deselects it. Only the grades in the feed show
+ * (show: their indexes on the scale).
+ */
 function ScaleRange({ label, scale, show, value, onChange }: { label: string; scale: readonly string[]; show: number[]; value: [number, number] | null; onChange: (v: [number, number] | null) => void }) {
-  const [anchor, setAnchor] = useState<number | null>(null);
   const pick = (i: number) => {
-    if (anchor === null || !value) {
-      setAnchor(i);
-      onChange([i, i]);
-    } else {
-      onChange([Math.min(anchor, i), Math.max(anchor, i)]);
-      setAnchor(null);
-    }
+    if (!value) return onChange([i, i]);
+    const [lo, hi] = value;
+    if (i < lo) return onChange([i, hi]);
+    if (i > hi) return onChange([lo, i]);
+    if (lo === hi) return onChange(null);
+    if (i === lo) return onChange([lo + 1, hi]);
+    if (i === hi) return onChange([lo, hi - 1]);
+    // Inside the run: keep the side nearer the better grades, ending at this one.
+    onChange([lo, i]);
   };
   return (
     <div className={s.filter}>
@@ -119,10 +126,7 @@ function ScaleRange({ label, scale, show, value, onChange }: { label: string; sc
           <button
             type="button"
             className={s.filterClear}
-            onClick={() => {
-              onChange(null);
-              setAnchor(null);
-            }}
+            onClick={() => onChange(null)}
           >
             Any
           </button>
@@ -178,14 +182,14 @@ const MEASURES = [
 ] as const;
 
 /** Length, width and depth ranges in millimetres (F-B1; layout until Surreal's reference, C-16); the placeholders show the feed's span. */
-function Measurements({ q, feed, onChange }: { q: DiamondQuery; feed: FeedOptions; onChange: (patch: Partial<DiamondQuery>) => void }) {
+function Measurements({ q, feed, onChange, onClear }: { q: DiamondQuery; feed: FeedOptions; onChange: (patch: Partial<DiamondQuery>) => void; onClear: (patch: Partial<DiamondQuery>) => void }) {
   const num = (v: string) => (v === "" ? null : Number(v));
   return (
     <div className={s.filter}>
       <span className={s.filterLabel}>
         Measurements, mm
         {hasMeasurements(q) && (
-          <button type="button" className={s.filterClear} onClick={() => onChange({ lengthMin: null, lengthMax: null, widthMin: null, widthMax: null, depthMin: null, depthMax: null })}>
+          <button type="button" className={s.filterClear} onClick={() => onClear({ lengthMin: null, lengthMax: null, widthMin: null, widthMax: null, depthMin: null, depthMax: null })}>
             Any
           </button>
         )}
@@ -211,8 +215,12 @@ function SearchView({ params, program }: { params: URLSearchParams | null; progr
   const cart = useCart();
   const gone = useUnavailable();
   const legacyOnly = program === "legacy";
+  // base: no filters (what Clear all goes to). start: what the search opens on, F color and VS2 clarity and above (client feedback, November 2026).
   const base = legacyOnly ? LEGACY_BASE : EMPTY;
-  const [q, setQ] = useState<DiamondQuery>(base);
+  const start = legacyOnly ? LEGACY_BASE : DEFAULT_QUERY;
+  const [q, setQ] = useState<DiamondQuery>(start);
+  // Typed From and To values wait here until Apply Filter (client feedback, November 2026); every other filter applies as it is clicked.
+  const [draft, setDraft] = useState<Partial<DiamondQuery>>({});
   const [more, setMore] = useState(false);
   const [shown, setShown] = useState(PAGE);
   const [compare, setCompare] = useState<string[]>([]);
@@ -235,13 +243,22 @@ function SearchView({ params, program }: { params: URLSearchParams | null; progr
   if (linkedKey !== seenKey) {
     setSeenKey(linkedKey);
     const patch = fromParams(params);
-    if (patch) setQ({ ...base, ...patch });
+    if (patch) setQ({ ...start, ...patch });
   }
 
   const update = (patch: Partial<DiamondQuery>) => {
     setQ((prev) => ({ ...prev, ...patch, ...(legacyOnly && { legacy: true }) }));
+    // A filter set directly (a carat preset, Clear all) replaces whatever was typed for it and not yet applied.
+    setDraft((prev) => Object.fromEntries(Object.entries(prev).filter(([key]) => !(key in patch))));
     setShown(PAGE);
   };
+  const stage = (patch: Partial<DiamondQuery>) => setDraft((prev) => ({ ...prev, ...patch }));
+  const pending = Object.keys(draft).length > 0;
+  const applyDraft = () => {
+    if (pending) update(draft);
+  };
+  /** What the From and To boxes show: the applied search with the typed values over it. */
+  const typed: DiamondQuery = { ...q, ...draft };
 
   // Price sorts need a price: without a dealer the list falls back to the default order.
   const sort: SortKey = !dealer && PRICE_SORTS.includes(q.sort) ? EMPTY.sort : q.sort;
@@ -381,9 +398,16 @@ function SearchView({ params, program }: { params: URLSearchParams | null; progr
             ))}
           </div>
 
+          <form
+            className={s.filterForm}
+            onSubmit={(e) => {
+              e.preventDefault();
+              applyDraft();
+            }}
+          >
           <div className={s.filters}>
             <div className={s.caratBox}>
-              <Range label="Carat" min={q.caratMin} max={q.caratMax} step={0.1} unit="ct" span={feed.carat} onChange={(lo, hi) => update({ caratMin: lo, caratMax: hi })} />
+              <Range label="Carat" min={typed.caratMin} max={typed.caratMax} step={0.1} unit="ct" span={feed.carat} onChange={(lo, hi) => stage({ caratMin: lo, caratMax: hi })} />
               <div className={s.presets}>
                 {presets.map(([label, lo, hi]) => (
                   <button key={label} type="button" className={s.preset} aria-pressed={q.caratMin === lo && q.caratMax === hi} onClick={() => update(q.caratMin === lo && q.caratMax === hi ? { caratMin: null, caratMax: null } : { caratMin: lo, caratMax: hi })}>
@@ -394,7 +418,7 @@ function SearchView({ params, program }: { params: URLSearchParams | null; progr
             </div>
             <ScaleRange label="Color" scale={COLORS} show={feed.colors} value={q.color} onChange={(v) => update({ color: v })} />
             <ScaleRange label="Clarity" scale={CLARITIES} show={feed.clarities} value={q.clarity} onChange={(v) => update({ clarity: v })} />
-            <Measurements q={q} feed={feed} onChange={update} />
+            <Measurements q={typed} feed={feed} onChange={stage} onClear={update} />
             <Chips label="Cut (round)" options={feed.cuts} value={q.cut} onChange={(v) => update({ cut: v })} />
           </div>
 
@@ -422,11 +446,18 @@ function SearchView({ params, program }: { params: URLSearchParams | null; progr
               </div>
               <Chips label="Lab" options={feed.labs} value={q.lab} onChange={(v) => update({ lab: v })} />
               <Chips label="Fluorescence" options={feed.fluorescence} value={q.fluorescence} onChange={(v) => update({ fluorescence: v })} />
-              <Range label="Ratio" min={q.ratioMin} max={q.ratioMax} step={0.01} span={feed.ratio} onChange={(lo, hi) => update({ ratioMin: lo, ratioMax: hi })} />
-              <Range label="Table" min={q.tableMin} max={q.tableMax} step={0.5} unit="%" span={feed.table} onChange={(lo, hi) => update({ tableMin: lo, tableMax: hi })} />
-              <Range label="Depth" min={q.depthPctMin} max={q.depthPctMax} step={0.5} unit="%" span={feed.depthPct} onChange={(lo, hi) => update({ depthPctMin: lo, depthPctMax: hi })} />
+              <Range label="Ratio" min={typed.ratioMin} max={typed.ratioMax} step={0.01} span={feed.ratio} onChange={(lo, hi) => stage({ ratioMin: lo, ratioMax: hi })} />
+              <Range label="Table" min={typed.tableMin} max={typed.tableMax} step={0.5} unit="%" span={feed.table} onChange={(lo, hi) => stage({ tableMin: lo, tableMax: hi })} />
+              <Range label="Depth" min={typed.depthPctMin} max={typed.depthPctMax} step={0.5} unit="%" span={feed.depthPct} onChange={(lo, hi) => stage({ depthPctMin: lo, depthPctMax: hi })} />
             </div>
           )}
+            <div className={s.applyRow}>
+              {pending && <span className={s.applyHint}>Typed values are not applied yet.</span>}
+              <button type="submit" className={s.applyBtn} data-pending={pending ? "true" : undefined}>
+                Apply Filter
+              </button>
+            </div>
+          </form>
         </div>
       </section>
 

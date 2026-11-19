@@ -12,7 +12,7 @@
  * (the site search, the homepage).
  */
 
-import { CLARITIES, COLORS, FLUORESCENCE, GRADES, LABS, SHAPES, SHAPE_LABEL, type Fluorescence, type Grade, type Lab, type Stone, type StoneShape } from "@/content/diamonds";
+import { CLARITIES, COLORS, FLUORESCENCE, GRADES, LABS, SEARCH_SHAPES, SHAPES, SHAPE_LABEL, type Fluorescence, type Grade, type Lab, type Stone, type StoneShape } from "@/content/diamonds";
 import { stonePrice } from "@/lib/pricing";
 
 export type SortKey = "carat-asc" | "carat-desc" | "price-asc" | "price-desc";
@@ -84,6 +84,17 @@ export const EMPTY: DiamondQuery = {
   sort: "carat-asc",
 };
 
+/**
+ * What the search opens on (client feedback, November 2026): F color and
+ * above, VS2 clarity and above. Clear all still goes to EMPTY, so every
+ * stone can be listed.
+ */
+export const DEFAULT_QUERY: DiamondQuery = {
+  ...EMPTY,
+  color: [0, COLORS.indexOf("F")],
+  clarity: [0, CLARITIES.indexOf("VS2")],
+};
+
 const gradeAtLeast = (g: Grade, min: Grade | null) => min === null || GRADES.indexOf(g) <= GRADES.indexOf(min);
 const inRange = (n: number, lo: number | null, hi: number | null) => (lo === null || n >= lo) && (hi === null || n <= hi);
 
@@ -145,7 +156,7 @@ export function feedOptions(list: Stone[]) {
   const present = <T>(scale: readonly T[], pick: (s: Stone) => T | null) => scale.filter((x) => list.some((s) => pick(s) === x));
   const indexes = (scale: readonly string[], pick: (s: Stone) => string) => scale.map((_, i) => i).filter((i) => list.some((s) => pick(s) === scale[i]));
   return {
-    shapes: present(SHAPES, (s) => s.shape),
+    shapes: present(SEARCH_SHAPES, (s) => s.shape),
     colors: indexes(COLORS, (s) => s.color),
     clarities: indexes(CLARITIES, (s) => s.clarity),
     cuts: present(GRADES, (s) => s.cut),
