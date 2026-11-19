@@ -12,12 +12,10 @@
   z-index: 60;
   color: var(--ink);
   font-family: var(--font-ui), "Urbanist", sans-serif;
-  /* A gentle ease both ways, so the scroll fade reads as a fade, not a blink. */
-  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.45s var(--ease-surreal), background-color 0.45s var(--ease-surreal), box-shadow 0.45s var(--ease-surreal);
+  transition: color 0.45s var(--ease-surreal), background-color 0.45s var(--ease-surreal), box-shadow 0.45s var(--ease-surreal);
 }
 .header.header[data-theme] { background: transparent; }
-/* While the page scrolls the bar fades out; hover, focus, an open menu or the scrolling stopping bring it back (client change request, November 2026). */
-.header[data-scrolling="true"]:not(:hover):not(:focus-within):not([data-shop-open="true"]):not([data-menu-open="true"]) { opacity: 0; }
+/* The bar stays visible while the page scrolls (client feedback, November 2026). */
 .header::before {
   content: "";
   position: absolute;
@@ -29,7 +27,8 @@
   transition: box-shadow 0.4s var(--ease-surreal);
   pointer-events: none;
 }
-.header[data-condensed="true"]::before { box-shadow: 0 1px 0 var(--hairline), 0 10px 30px -18px rgba(11, 31, 42, 0.25); }
+/* Scrolled: fully opaque, nothing of the page shows through (client feedback, November 2026). */
+.header[data-condensed="true"]::before { background: var(--paper); box-shadow: 0 1px 0 var(--hairline), 0 10px 30px -18px rgba(11, 31, 42, 0.25); }
 .header[data-menu-open="true"]::before { background: var(--porcelain); box-shadow: none; }
 @media (max-width: 767px) {
   .header { --row-top: 60px; }
@@ -535,6 +534,9 @@
 .modeLabel { display: inline; }
 .modeBar { display: none; }
 @media (min-width: 768px) { .modeBar { display: inline-grid; } }
+/* In the top bar the switch is the sun and the moon only (19 November 2026); screen readers and the tooltip still name it. The phone menu keeps the words. */
+.modeBar .modeLabel { display: none; }
+.modeBar .modeOpt { padding: 0 12px; gap: 0; }
 /* In the mobile sheet the switch is full size with its labels. */
 .modeSheet { height: 44px; width: fit-content; }
 .modeSheet .modeOpt { padding: 0 18px; font-size: 0.75rem; }
