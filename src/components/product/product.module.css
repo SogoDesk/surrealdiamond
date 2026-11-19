@@ -274,10 +274,6 @@
 }
 .secondary:hover { background: var(--mist); }
 .primary:focus-visible, .secondary:focus-visible { outline: 2px solid var(--sky); outline-offset: 3px; }
-/* Buy now beside Add to cart, in Surreal blue; Ask a question then takes the row below. */
-.buyNow { display: inline-flex; align-items: center; justify-content: center; height: 52px; padding: 0 22px; border-radius: 999px; background: var(--sky); color: var(--navy); font-size: 0.75rem; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; transition: filter 0.3s var(--ease-surreal); }
-.buyNow:hover { filter: brightness(0.94); }
-.buyNow:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
 .doorWide { grid-column: 1 / -1; }
 .apply { margin: -4px 0 0; font-size: 0.8125rem; color: var(--stone); }
 .apply a { color: var(--ink); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
@@ -330,6 +326,10 @@
 .detailsLayout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: clamp(24px, 3vw, 48px); align-items: start; }
 @media (max-width: 1023px) { .detailsLayout { grid-template-columns: 1fr; } }
 .detailsMain { display: flex; flex-direction: column; gap: 10px; }
+/* Details: the description first, then every fact in ruled rows of three, inside the one bar. */
+.detailsText { padding-bottom: 18px; }
+.detailsGrid { gap: 0 28px; }
+.detailsGrid .spec { padding: 16px 0; border-top: 1px solid var(--hairline); }
 .acc { border-radius: var(--radius-md); background: var(--white); box-shadow: inset 0 0 0 1px var(--hairline); overflow: hidden; }
 .accHead { width: 100%; display: flex; align-items: center; gap: 14px; padding: 18px 20px; font-size: 0.75rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink); text-align: left; }
 .accIcon { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; background: var(--mist); color: var(--ink); flex: 0 0 auto; }
@@ -349,8 +349,9 @@
 .detailsFigure { position: sticky; top: calc(var(--nav-h) + 24px); margin: 0; display: flex; flex-direction: column; gap: 10px; }
 @media (max-width: 1023px) { .detailsFigure { position: static; } }
 .figRef { align-self: flex-end; font-size: 0.75rem; letter-spacing: 0.1em; color: var(--stone); }
-.figImage { display: block; aspect-ratio: 1; border-radius: var(--radius-md); background: radial-gradient(90% 80% at 50% 46%, #ffffff 0%, rgba(255, 255, 255, 0.55) 38%, rgba(255, 255, 255, 0) 72%), var(--ground, var(--well)); box-shadow: inset 0 0 0 1px rgba(11, 31, 42, 0.06); overflow: hidden; }
-.figImage img { width: 100%; height: 100%; object-fit: contain; padding: 10%; mix-blend-mode: multiply; }
+/* Wider than tall, so the picture and the note under it end level with the one Details box beside them. */
+.figImage { display: block; aspect-ratio: 3 / 2; border-radius: var(--radius-md); background: radial-gradient(90% 80% at 50% 46%, #ffffff 0%, rgba(255, 255, 255, 0.55) 38%, rgba(255, 255, 255, 0) 72%), var(--ground, var(--well)); box-shadow: inset 0 0 0 1px rgba(11, 31, 42, 0.06); overflow: hidden; }
+.figImage img { width: 100%; height: 100%; object-fit: contain; padding: 5% 10%; mix-blend-mode: multiply; }
 .figNote { margin: 0; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 999px; background: var(--white); box-shadow: inset 0 0 0 1px var(--hairline); font-size: 0.8125rem; color: var(--graphite); }
 
 /* ---------- 4. See it in person ---------- */
@@ -510,3 +511,16 @@
 .lbThumb img { width: 86%; height: 86%; object-fit: contain; mix-blend-mode: multiply; }
 .lbThumb[data-kind="photo"] img { width: 100%; height: 100%; object-fit: cover; mix-blend-mode: normal; }
 .lbThumb[aria-current="true"] { opacity: 1; box-shadow: inset 0 0 0 1.5px var(--ink); }
+
+/* Total carat weight and quantity on one line (client feedback, November 2026); stacked again on a narrow phone. */
+.caratQty { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 14px 32px; }
+/* Both labels on one line, both controls the same height, the quantity box against the right edge. */
+.caratQty .label { display: flex; align-items: center; min-height: 22px; }
+.caratQty .stepper { width: 200px; height: 40px; }
+
+/* Special instructions (client feedback, November 2026): a plain hint, marked optional, with a clearer hover and focus. */
+.label .optional { margin-left: 8px; padding: 2px 8px; border-radius: 999px; background: var(--porcelain); font-size: 0.6875rem; letter-spacing: 0.02em; text-transform: none; color: var(--stone); }
+.textarea { min-height: 84px; transition: box-shadow 0.2s var(--ease-surreal), background-color 0.2s var(--ease-surreal); }
+.textarea::placeholder { color: var(--stone); opacity: 0.75; }
+.textarea:hover { box-shadow: inset 0 0 0 1px #b9c2ca; }
+.textarea:focus { outline: none; box-shadow: inset 0 0 0 1px var(--ink), 0 0 0 3px color-mix(in srgb, var(--sky) 45%, transparent); }

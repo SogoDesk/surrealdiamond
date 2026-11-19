@@ -11,20 +11,19 @@
  * labelled Light / Dark switch sits in the right corner (client change
  * request, November 2026). Second row (from 1024px): the primary links;
  * Jewelry opens the mega menu on hover intent, click or tap. Both rows stay
- * in place; while the page scrolls the bar fades out, and it comes back on
- * hover, on focus, or as soon as the scrolling stops. The bar is light on the
+ * in place and stay visible while the page scrolls (client feedback,
+ * November 2026: the earlier fade while scrolling is gone). The bar is light on the
  * commerce pages; the homepage passes `chapters`, which mounts ThemeSync so
  * the bar follows each chapter's data-theme (light-on-dark glass over the
  * dark chapters).
  */
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type FocusEvent, type KeyboardEvent, type PointerEvent, type RefObject } from "react";
 import LineMark from "@/components/brand/LineMark";
 import Wordmark from "@/components/brand/Wordmark";
 import Button from "@/components/ui/Button";
-import { openContactDrawer } from "@/components/chrome/ContactDrawer";
 import { account, nav } from "@/content/site";
 import { LINE_MARK_ASPECT } from "@/components/brand/lineMarkPaths";
 import { registerGsap, gsap, useGSAP } from "@/lib/gsap";
@@ -63,8 +62,6 @@ export const APPOINTMENT_LINK: ChromeLink = { label: "Schedule an appointment", 
 export const DASHBOARD_LINK: ChromeLink = { label: "Retailer Dashboard", href: account.dashboard };
 
 const CONDENSE_AT = 80;
-/** The bar fades while the page scrolls, and is back this long after the scrolling stops. */
-const FADE_IDLE = 450;
 
 const subscribeScroll = (onChange: () => void) => {
   window.addEventListener("scroll", onChange, { passive: true });
@@ -86,16 +83,6 @@ function MagnifierIcon() {
     <svg aria-hidden viewBox="0 0 16 16" className={styles.icon} fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round">
       <circle cx="6.75" cy="6.75" r="5.25" />
       <path d="M10.6 10.6 15 15" />
-    </svg>
-  );
-}
-
-function CalendarIcon() {
-  return (
-    <svg aria-hidden viewBox="0 0 18 18" className={styles.icon} fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2.5" y="3.5" width="13" height="12" rx="1" />
-      <path d="M2.5 7h13M6 2v3M12 2v3" />
-      <path d="M6 10.5h1M8.5 10.5h1M11 10.5h1M6 13h1M8.5 13h1" />
     </svg>
   );
 }
@@ -123,6 +110,7 @@ export default function Header({ menuOpen, onMenuToggle, headerRef, chapters = f
   const logoRef = useRef<HTMLAnchorElement>(null);
   const shopRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
+  const router = useRouter();
   const [shopOpen, setShopOpen] = useState(false);
   const condensed = useSyncExternalStore(subscribeScroll, pastCondense, notPast);
   const dealer = useDealer();
@@ -141,26 +129,6 @@ export default function Header({ menuOpen, onMenuToggle, headerRef, chapters = f
   }, []);
 
   useEffect(() => () => window.clearTimeout(intentTimer.current), []);
-
-  /* Past the first 80px, scrolling fades the bar out; it returns when the scrolling stops (and on hover or focus, in CSS). */
-  useEffect(() => {
-    const header = ref.current;
-    if (!header) return;
-    let timer = 0;
-    const onScroll = () => {
-      window.clearTimeout(timer);
-      if (window.scrollY > CONDENSE_AT) header.dataset.scrolling = "true";
-      timer = window.setTimeout(() => {
-        delete header.dataset.scrolling;
-      }, FADE_IDLE);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.clearTimeout(timer);
-      delete header.dataset.scrolling;
-    };
-  }, [ref]);
 
   useEffect(() => {
     if (!shopOpen) return;
@@ -249,13 +217,10 @@ export default function Header({ menuOpen, onMenuToggle, headerRef, chapters = f
         </div>
 
         <div className={styles.right}>
-          {/* Signed out: Log in and Become a dealer only. Signed in: appointments, Dealer Options, the Retailer Dashboard in Surreal blue and the cart (client change request, November 2026). */}
+          {/* Signed out: Log in and Become a dealer only. Signed in: the cart, then Dealer Options and the Retailer Dashboard in Surreal blue. Appointments left this row so the search keeps its width (19 November 2026); it is still in the phone menu. */}
           {dealer ? (
             <>
-              <button type="button" className={`${styles.util} ${styles.iconLink}`} onClick={() => openContactDrawer("other", "visit")}>
-                <CalendarIcon />
-                <span className={styles.utilLabel}>Appointments</span>
-              </button>
+              <MiniCart />
               <DealerMenu dealer={dealer} />
               <span className={styles.pillWrap}>
                 <Button variant="primary" href={DASHBOARD_LINK.href} className={`${styles.pill} ${styles.pillSky}`}>
@@ -279,7 +244,6 @@ export default function Header({ menuOpen, onMenuToggle, headerRef, chapters = f
           <Link href={account.search} className={styles.searchIconLink} aria-label="Search">
             <MagnifierIcon />
           </Link>
-          {dealer && <MiniCart />}
           <ThemeSwitch className={styles.modeBar} />
           <MenuButton open={menuOpen} onToggle={onMenuToggle} />
         </div>
@@ -298,7 +262,7 @@ export default function Header({ menuOpen, onMenuToggle, headerRef, chapters = f
                   </Link>
                 </li>
               );
-            /* Jewelry is the mega menu's trigger: hover intent opens it, and so does a click or a tap (with a mouse a click only opens it, so hovering then clicking never closes it). View all inside goes to the store. */
+            /* Jewelry is the mega menu's trigger and a link: hover intent (or the down arrow) opens the menu, a click goes to the All Jewelry page. */
             return (
               <li key={item.label} className={styles.shopItem} onPointerEnter={() => intend(true)} onPointerLeave={onShopLeave}>
                 <button
@@ -312,11 +276,19 @@ export default function Header({ menuOpen, onMenuToggle, headerRef, chapters = f
                   onKeyDown={onShopKey}
                   onClick={(e) => {
                     window.clearTimeout(intentTimer.current);
-                    const mouse = (e.nativeEvent as globalThis.PointerEvent).pointerType === "mouse";
-                    setShopOpen((o) => (mouse ? true : !o));
+                    // Hover opens the menu; a click goes to the All Jewelry page (client feedback, November 2026).
+                    // A finger cannot hover, so the first tap opens the menu and the second goes to the page.
+                    const touch = (e.nativeEvent as globalThis.PointerEvent).pointerType === "touch";
+                    if (touch && !shopOpen) {
+                      setShopOpen(true);
+                      return;
+                    }
+                    closeShop();
+                    router.push(item.href);
                   }}
                 >
-                  <span>{item.label}</span>
+                  {/* Shown as "Jewellery" in the top bar on request (19 November 2026); the label stays "Jewelry" in code, which the menu logic and the rest of the site use. */}
+                  <span>Jewellery</span>
                   <Chevron />
                 </button>
               </li>

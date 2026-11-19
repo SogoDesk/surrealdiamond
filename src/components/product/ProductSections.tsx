@@ -123,31 +123,22 @@ export function Details({ product, selection }: { product: Product; selection: P
 
         <div className={s.detailsLayout}>
           <div className={s.detailsMain}>
-            <Accordion title="Metal details" open icon={icon(<><circle cx="10" cy="11" r="5.5" /><path d="M7.5 3.5h5l1.5 2-4 3-4-3Z" /></>)}>
-              <div className={s.specGrid}>
+            {/* Metal, diamond and general details and the description in one section titled Details, open to start (client feedback, November 2026). */}
+            <Accordion title="Details" open icon={icon(<><rect x="3.5" y="3.5" width="13" height="13" rx="1.5" /><path d="M7 8h6M7 11h6M7 14h3" /></>)}>
+              <p className={`${s.accText} ${s.detailsText}`}>
+                {product.name}: {product.detail.toLowerCase()}. {cat?.blurb}
+              </p>
+              <div className={`${s.specGrid} ${s.detailsGrid}`}>
                 <Spec label="Selected metal" value={metalLabel} />
-              </div>
-            </Accordion>
-            <Accordion title="Diamond details" icon={icon(<><path d="M6 3.5h8l3 4-7 9-7-9Z" /><path d="M3 7.5h14" /></>)}>
-              <div className={s.specGrid}>
-                <Spec label="Origin" value="Lab grown, CVD" />
                 <Spec label="Total carat weight" value={formatCarat(selection.carat)} />
-                <Spec label="Offered in" value={caratOptions[product.category].map(formatCarat).join(", ")} />
                 {shape && <Spec label="Center stone" value={shape} />}
-              </div>
-            </Accordion>
-            <Accordion title="General details" icon={icon(<><rect x="3.5" y="3.5" width="13" height="13" rx="1.5" /><path d="M7 8h6M7 11h6M7 14h3" /></>)}>
-              <div className={s.specGrid}>
+                <Spec label="Origin" value="Lab grown, CVD" />
+                <Spec label="Offered in" value={caratOptions[product.category].map(formatCarat).join(", ")} />
                 <Spec label="Category" value={categoryLabel(product.category)} />
                 {ref && <Spec label="Reference" value={ref} />}
                 <Spec label="Views" value={product.video ? "Renders and 360 video" : "Renders"} />
                 <Spec label="Certificates" value="On request" />
               </div>
-            </Accordion>
-            <Accordion title="Description" icon={icon(<path d="M4 5h12M4 9h12M4 13h8" />)}>
-              <p className={s.accText}>
-                {product.name}: {product.detail.toLowerCase()}. {cat?.blurb}
-              </p>
             </Accordion>
           </div>
           <figure className={s.detailsFigure}>

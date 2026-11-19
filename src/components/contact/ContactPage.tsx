@@ -15,7 +15,7 @@
  * acknowledgement email that goes to their inbox. Beside the form: the North
  * American Office with today's hours in New York time and whether it is open,
  * and the dealer benefits from the live appointment page (or, signed in, the
- * dashboard). Quick answers follow, all from the live site. ?type= presets
+ * dashboard). Frequently Asked Questions follow, all from the live site. ?type= presets
  * the inquiry type.
  */
 
@@ -494,7 +494,7 @@ function Inquiries({ preset }: { preset: InquiryType | null }) {
       <section className={s.quick} aria-labelledby="quick-title">
         <div className={s.wrap}>
           <h2 id="quick-title" className={s.quickTitle}>
-            Quick <em>answers</em>
+            Frequently Asked <em>Questions</em>
           </h2>
           <div className={s.faq}>
             {QUICK.map((item) => (

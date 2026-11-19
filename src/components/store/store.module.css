@@ -137,9 +137,9 @@
 }
 
 /* Toolbar */
+/* Not pinned: the toolbar leaves with the page as the grid scrolls (client feedback, November 2026). */
 .toolbarWrap {
-  position: sticky;
-  top: var(--nav-h);
+  position: relative;
   z-index: 20;
   background: color-mix(in srgb, var(--porcelain) 94%, transparent);
   -webkit-backdrop-filter: blur(12px);

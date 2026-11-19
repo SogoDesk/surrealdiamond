@@ -28,7 +28,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense, useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import SiteChrome from "@/components/chrome/SiteChrome";
 import ContactDrawer, { openContactDrawer } from "@/components/chrome/ContactDrawer";
 import Footer from "@/components/sections/Footer";
@@ -102,14 +102,9 @@ function ProductView({ product, params }: { product: Product; params: URLSearchP
   const metalLabel = metals.find((m) => m.id === selection.metal)?.label ?? "";
   const saved = has(product.id);
   const dealer = useDealer();
-  const router = useRouter();
   const line = () => ({ productId: product.id, metal: selection.metal, carat: selection.carat, size: null, qty, note: notes.trim() });
-  const add = () => addToCart(line());
-  /** Buy now: the piece goes into the cart and the dealer straight to checkout (client change request, November 2026). */
-  const buyNow = () => {
-    addToCart(line(), { quiet: true });
-    router.push(account.checkout);
-  };
+  /** Add to cart, then the popup offers Go to Cart or Continue Shopping; Buy now is gone (client feedback, November 2026). */
+  const add = () => addToCart(line(), { popup: true });
 
   /* The piece joins the dealer's recently viewed list (BRD R-08). */
   useEffect(() => {
@@ -237,20 +232,20 @@ function ProductView({ product, params }: { product: Product; params: URLSearchP
                   </div>
                 </div>
 
-                <div className={s.field}>
-                  <p className={s.label}>
-                    Total carat weight <span className={s.labelValue}>{formatCarat(selection.carat)}</span>
-                  </p>
-                  <div className={s.chipRow}>
-                    {caratOptions[product.category].map((ct) => (
-                      <button key={ct} type="button" className={s.chip} aria-pressed={selection.carat === ct} onClick={() => setSelection({ ...selection, carat: ct })}>
-                        {formatCarat(ct)}
-                      </button>
-                    ))}
+                {/* Total carat weight and quantity share one line (client feedback, November 2026). */}
+                <div className={s.caratQty}>
+                  <div className={s.field}>
+                    <p className={s.label}>
+                      Total carat weight <span className={s.labelValue}>{formatCarat(selection.carat)}</span>
+                    </p>
+                    <div className={s.chipRow}>
+                      {caratOptions[product.category].map((ct) => (
+                        <button key={ct} type="button" className={s.chip} aria-pressed={selection.carat === ct} onClick={() => setSelection({ ...selection, carat: ct })}>
+                          {formatCarat(ct)}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-
-                <div className={s.fieldRow}>
                   <div className={s.field}>
                     <span className={s.label} id="qty-label">
                       Quantity
@@ -270,13 +265,15 @@ function ProductView({ product, params }: { product: Product; params: URLSearchP
                 </div>
 
                 <label className={s.field}>
-                  <span className={s.label}>Special instructions</span>
-                  <textarea className={s.textarea} rows={2} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Engraving, delivery date, anything we should know" />
+                  <span className={s.label}>
+                    Special instructions <span className={s.optional}>Optional</span>
+                  </span>
+                  <textarea className={s.textarea} rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anything else we should know about?" />
                 </label>
 
                 <div ref={doorsRef} className={s.doors}>
                   {dealer ? (
-                    <button type="button" className={s.primary} onClick={add}>
+                    <button type="button" className={`${s.primary} ${s.doorWide}`} onClick={add}>
                       Add to cart
                       <svg aria-hidden viewBox="0 0 18 18" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M2.5 5.5h13l-.9 10.5H3.4z" />
@@ -290,11 +287,6 @@ function ProductView({ product, params }: { product: Product; params: URLSearchP
                         <path d="M3 8h10M9 4l4 4-4 4" />
                       </svg>
                     </Link>
-                  )}
-                  {dealer && (
-                    <button type="button" className={s.buyNow} onClick={buyNow}>
-                      Buy now
-                    </button>
                   )}
                   <button type="button" className={`${s.secondary} ${dealer ? s.doorWide : ""}`} onClick={() => openContactDrawer("other", "contact")}>
                     Ask a question

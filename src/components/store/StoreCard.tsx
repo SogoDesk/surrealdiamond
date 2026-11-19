@@ -114,7 +114,7 @@ export default function StoreCard({ product, preferredMetal, priority = false, o
         {dealer ? (
           <span className={s.priceRow}>
           <span className={`${s.priceFigure} tabular`}>{formatUSD(jewelryPrice(product, selection.metal, selection.carat))}</span>
-          <button type="button" className={s.price} onClick={() => addToCart({ productId: product.id, metal: selection.metal, carat: selection.carat, size: null, qty: 1, note: "" })}>
+          <button type="button" className={s.price} onClick={() => addToCart({ productId: product.id, metal: selection.metal, carat: selection.carat, size: null, qty: 1, note: "" }, { popup: true })}>
             <svg aria-hidden viewBox="0 0 18 18" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M2.5 5.5h13l-.9 10.5H3.4z" />
               <path d="M6 5.5V4.8a3 3 0 0 1 6 0v.7" />

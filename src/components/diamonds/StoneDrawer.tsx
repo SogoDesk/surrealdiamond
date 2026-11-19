@@ -97,20 +97,26 @@ export default function StoneDrawer({ stone, open, position, total, onClose, onS
             </header>
 
             <div className={s.drawerBody}>
-              <div className={s.plan}>
-                <span className={s.sample}>Sample stone</span>
-                <div className={s.planFigure}>
-                  <ShapeIcon shape={stone.shape} detail className={s.planIcon} />
-                </div>
-                <span className={s.planLength}>{stone.length.toFixed(2)} mm</span>
-                <span className={s.planWidth}>{stone.width.toFixed(2)} mm</span>
-              </div>
-
+              {/* Carat and shape with the price beside them, then Purchase and Get on memo, all before the drawing (client feedback, November 2026). */}
               <div className={s.drawerTitleRow}>
-                <h2 className={s.drawerTitle}>{stoneTitle(stone)}</h2>
-                <p className={s.drawerSub}>
-                  Stock {stone.id} · {STONE_TYPE}
-                </p>
+                <div className={s.drawerTitleMain}>
+                  <h2 className={s.drawerTitle}>{stoneTitle(stone)}</h2>
+                  <p className={s.drawerSub}>
+                    Stock {stone.id} · {STONE_TYPE}
+                  </p>
+                </div>
+                <div className={s.drawerPrice}>
+                  {dealer ? (
+                    <>
+                      <strong className="tabular">{formatUSD(stonePrice(stone))}</strong>
+                      <span>Price</span>
+                    </>
+                  ) : (
+                    <Link href={loginHref} className={s.drawerPriceLink}>
+                      Log in for price
+                    </Link>
+                  )}
+                </div>
                 <div className={s.gradeChips}>
                   <span>{stoneGrade(stone)}</span>
                   {stone.cut && <span>{stone.cut}</span>}
@@ -119,37 +125,6 @@ export default function StoneDrawer({ stone, open, position, total, onClose, onS
                   </span>
                   <span>Fluor. {stone.fluorescence}</span>
                 </div>
-              </div>
-
-              <dl className={s.specGrid}>
-                {specs.map(([k, v]) => (
-                  <div key={k}>
-                    <dt>{k}</dt>
-                    <dd className="tabular">{v}</dd>
-                  </div>
-                ))}
-              </dl>
-
-              <div className={s.infoRow}>
-                <div className={s.infoCard}>
-                  <span className={s.infoLabel}>Certificate</span>
-                  <strong className="tabular">
-                    {stone.lab} {stone.certificate}
-                  </strong>
-                  <span>Sample number. Live stones link to the lab report.</span>
-                </div>
-              </div>
-
-              <div className={s.priceBox}>
-                <span>
-                  <strong className={dealer ? "tabular" : undefined}>{dealer ? formatUSD(stonePrice(stone)) : "Price"}</strong>
-                  {dealer ? "Price" : "Log in to see your price and availability."}
-                </span>
-                {!dealer && (
-                  <Link href={loginHref} className={s.priceLink}>
-                    Log in
-                  </Link>
-                )}
               </div>
 
               {held && (
@@ -177,6 +152,35 @@ export default function StoneDrawer({ stone, open, position, total, onClose, onS
                   </Link>
                 )}
               </div>
+
+              <div className={s.plan}>
+                <span className={s.sample}>Sample stone</span>
+                <div className={s.planFigure}>
+                  <ShapeIcon shape={stone.shape} detail className={s.planIcon} />
+                </div>
+                <span className={s.planLength}>{stone.length.toFixed(2)} mm</span>
+                <span className={s.planWidth}>{stone.width.toFixed(2)} mm</span>
+              </div>
+
+              <dl className={s.specGrid}>
+                {specs.map(([k, v]) => (
+                  <div key={k}>
+                    <dt>{k}</dt>
+                    <dd className="tabular">{v}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              <div className={s.infoRow}>
+                <div className={s.infoCard}>
+                  <span className={s.infoLabel}>Certificate</span>
+                  <strong className="tabular">
+                    {stone.lab} {stone.certificate}
+                  </strong>
+                  <span>Sample number. Live stones link to the lab report.</span>
+                </div>
+              </div>
+
               <Link href={m2oHref(EMPTY, stone)} className={s.m2oLink}>
                 <span>
                   <strong>Grow one like it to order</strong>
