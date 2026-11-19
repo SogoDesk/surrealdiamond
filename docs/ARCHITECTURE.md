@@ -1,5 +1,7 @@
 # Surreal Diamond, Phase 1 architecture baseline (M1)
 
+**Update, 5 November 2026:** the backend is now planned as our own **NestJS API with PostgreSQL, self-hosted on the team's private server** (see [backend/PLAN.md](backend/PLAN.md)). That replaces the hosting, database and sign-in choices below (Vercel, Neon with Drizzle, Clerk: D2, D3, D4) and the Sanity proposal (D6). The access rules, the RightClick approach and the data areas below still apply.
+
 Status: **proposed, awaiting approval** (30 September 2026). Nothing below is provisioned yet. Once the choices are approved, every service is set up in Surreal's own name (BRD A9), and the preview's browser storage is replaced service by service (section 8).
 
 Scope and requirements: [CONTEXT.md](CONTEXT.md), [CHECKLIST.md](CHECKLIST.md). Work plan: [TASKS.md](TASKS.md).
