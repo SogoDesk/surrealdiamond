@@ -65,15 +65,22 @@ export const lineKey = (productId: string, metal: Metal, carat: number, size: st
 
 export const CART_ADDED = "surreal-cart-added";
 
-/** quiet: skip the mini cart flash, for Buy now, which goes straight to checkout. */
-export function addToCart(line: Omit<CartLine, "key">, { quiet = false }: { quiet?: boolean } = {}) {
+/** A piece was added from a store card, Quick View or the product page: the "Added to your cart" popup shows it (components/chrome/AddedToCartPopup.tsx). */
+export const CART_POPUP = "surreal-cart-popup";
+
+/**
+ * popup: show the "Go to Cart / Continue Shopping" popup instead of opening the
+ * mini cart (client feedback, November 2026). Reorders from the dashboard add
+ * several lines at once, so they keep the mini cart.
+ */
+export function addToCart(line: Omit<CartLine, "key">, { popup = false }: { popup?: boolean } = {}) {
   const key = lineKey(line.productId, line.metal, line.carat, line.size);
   cart.set((lines) => {
     const found = lines.find((l) => l.key === key);
     if (found) return lines.map((l) => (l.key === key ? { ...l, qty: Math.min(99, l.qty + line.qty), note: line.note || l.note } : l));
     return [...lines, { ...line, key }];
   });
-  if (!quiet) window.dispatchEvent(new CustomEvent(CART_ADDED, { detail: key }));
+  window.dispatchEvent(new CustomEvent(popup ? CART_POPUP : CART_ADDED, { detail: key }));
 }
 
 /** Add a loose stone, to purchase or on memo. A stone is one of a kind: adding it again only switches it between purchase and memo. */

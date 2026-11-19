@@ -1,3 +1,4 @@
+import AddedToCartPopup from "@/components/chrome/AddedToCartPopup";
 import SessionSync from "@/lib/api/SessionSync";
 import type { Metadata, Viewport } from "next";
 import { Italiana, Urbanist } from "next/font/google";
@@ -61,6 +62,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body suppressHydrationWarning>
         <SessionSync />
         {children}
+        {/* "Added to your cart", with Go to Cart and Continue Shopping (components/chrome/AddedToCartPopup.tsx). */}
+        <AddedToCartPopup />
       </body>
     </html>
   );
