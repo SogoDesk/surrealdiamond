@@ -49,6 +49,11 @@
 - [x] 2. Top navbar: when scrolling up and down, the last bar of the navbar shows separately. It should not show as a separate bar, and the navbar should show up faster on each page.
 - [x] 3. Top navbar: remove Appointments so the search bar is not cut off, and move the cart icon before the Dealer Options and Retailer Dashboard buttons.
 
+## ADDED ON REQUEST
+
+- [x] Jewellery listing pages: show the products on the first screen instead of the categories, collections and programs.
+  - Done 23 Nov 2026: a compact top (smaller title, one line pricing note) and one row of category pills, with Collections and Programs as pills that open their tiles. The first row of products now shows on a 1440 × 900 laptop and on a phone. The description stays on laptops and is hidden on phones.
+
 ## NOTE
 
 **Item 7 is fixed** (still worth confirming the reading with Neha). Here is what its words mean.
