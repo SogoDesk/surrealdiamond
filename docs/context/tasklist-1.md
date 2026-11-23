@@ -32,15 +32,20 @@
 
 ## RETAILER DASHBOARD
 
-- [ ] 19. Add a small, underlined Log Out link.
-- [ ] 20. Add a "Forgot your password?" request link.
+- [x] 19. Add a small, underlined Log Out link.
+  - Done 23 Nov 2026: under the store name at the top of the dashboard, on phones too.
+- [x] 20. Add a "Forgot your password?" request link.
+  - Done 23 Nov 2026: in Account settings, under the current password. It shows an error until a mail service is set up to send the email.
 - [ ] 21. Remove sidebar links that already exist elsewhere on the site, and add Brand Images and Spiff Program catalogs. ![ASSETS NEEDED FROM NEHA](tag-assets-needed.svg)
-- [ ] 22. Default invoice payment method: bill to account (standard wholesale workflow).
+  - Part done 23 Nov 2026: Diamond search, Made to Order, Diamond Legacy, Custom jewellery and Cart are out of the sidebar. Brand Images and Spiff Program catalogs wait for the files.
+- [x] 22. Default invoice payment method: bill to account (standard wholesale workflow).
+  - Done 23 Nov 2026: Bill to account is chosen by default at checkout, with card, ACH and wire still offered. A billed order shows as an open invoice on Net 30 Days terms (to confirm with Surreal).
 - [ ] 23. Order status and shipment tracking should update from the system's shipping paperwork.
 
 ## OTHER FRONTEND BUGS
 
 - [x] 1. Fix the spelling of Jewelry in the top navbar and make it proper.
+  - 23 Nov 2026: now spelled Jewellery everywhere the site shows it (pages, menus, titles, console). Page addresses stay /jewelry so links keep working.
 - [x] 2. Top navbar: when scrolling up and down, the last bar of the navbar shows separately. It should not show as a separate bar, and the navbar should show up faster on each page.
 - [x] 3. Top navbar: remove Appointments so the search bar is not cut off, and move the cart icon before the Dealer Options and Retailer Dashboard buttons.
 
