@@ -40,8 +40,13 @@ export interface StoreDetails {
   notes: string;
 }
 
-/** Payment at checkout (BRD B-05): card, ACH or wire through Surreal's existing card processor. */
-export type PaymentMethod = "card" | "ach" | "wire";
+/**
+ * Payment at checkout. Bill to account is the default, the standard wholesale
+ * way (client task list, November 2026, item 22): the order is invoiced to the
+ * store on terms and paid later from Invoices and payments. Card, ACH or wire
+ * (BRD B-05) stay for dealers who pay with the order.
+ */
+export type PaymentMethod = "account" | "card" | "ach" | "wire";
 
 export interface PlacedOrder {
   number: string;

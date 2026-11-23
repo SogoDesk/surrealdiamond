@@ -8,7 +8,9 @@
  * - Status: Received (placed on the site), Confirmed (Surreal accepted it,
  *   confirming prices from the dealer's price list), Shipped (carrier and
  *   tracking), Delivered; or Cancelled, with a reason the dealer sees.
- * - Payment (B-05), by method: a card is authorized at checkout and charged
+ * - Payment (B-05), by method: billed to account (the default) is invoiced
+ *   on terms and paid from the dealer's Invoices and payments, so nothing is
+ *   collected with the order; a card is authorized at checkout and charged
  *   when Surreal confirms the order; an ACH debit is initiated at checkout
  *   and settles a few business days later; a wire is awaited until finance
  *   records it. Cancelling voids what was not collected and refunds what was.
@@ -32,8 +34,9 @@ export type OrderStatus = "received" | "confirmed" | "shipped" | "delivered" | "
 export const STATUS_STEPS: OrderStatus[] = ["received", "confirmed", "shipped", "delivered"];
 export const STATUS_LABEL: Record<OrderStatus, string> = { received: "Received", confirmed: "Confirmed", shipped: "Shipped", delivered: "Delivered", cancelled: "Cancelled" };
 
-export type PayState = "authorized" | "captured" | "initiated" | "settled" | "awaiting" | "received" | "voided" | "refunded";
+export type PayState = "billed" | "authorized" | "captured" | "initiated" | "settled" | "awaiting" | "received" | "voided" | "refunded";
 export const PAY_LABEL: Record<PayState, string> = {
+  billed: "Invoiced on terms",
   authorized: "Card authorized",
   captured: "Card charged",
   initiated: "ACH debit initiated",
@@ -45,7 +48,7 @@ export const PAY_LABEL: Record<PayState, string> = {
 };
 /** Money that has arrived, and so can be posted in RightClick. */
 export const COLLECTED: PayState[] = ["captured", "settled", "received"];
-export const METHOD_LABEL: Record<PaymentMethod, string> = { card: "Card", ach: "ACH", wire: "Wire" };
+export const METHOD_LABEL: Record<PaymentMethod, string> = { account: "Bill to account", card: "Card", ach: "ACH", wire: "Wire" };
 
 export const CARRIERS = ["FedEx", "UPS", "USPS", "Other"] as const;
 export type Carrier = (typeof CARRIERS)[number];
@@ -85,7 +88,7 @@ export const useOrderWorkMap = store.useStore;
 export function initialWork(o: PlacedOrder): OrderWork {
   return {
     status: "received",
-    pay: o.payment === "card" ? "authorized" : o.payment === "ach" ? "initiated" : "awaiting",
+    pay: o.payment === "account" ? "billed" : o.payment === "card" ? "authorized" : o.payment === "ach" ? "initiated" : "awaiting",
     events: [{ at: o.placedAt, by: o.details.contact || o.details.store, text: "Order placed on the site", dealer: true }],
   };
 }
@@ -147,7 +150,7 @@ export function cancelOrder(o: PlacedOrder, base: OrderWork | undefined, by: str
       events: [
         ...w.events,
         event(by, `Cancelled: ${reason}`),
-        event(by, collected ? "Refund issued to the original payment" : w.pay === "authorized" ? "Card authorization released" : "Nothing was collected"),
+        event(by, collected ? "Refund issued to the original payment" : w.pay === "authorized" ? "Card authorization released" : w.pay === "billed" ? "Invoice cancelled, nothing is owed" : "Nothing was collected"),
         ...(note.trim() ? [event(by, note.trim(), false)] : []),
       ],
     };

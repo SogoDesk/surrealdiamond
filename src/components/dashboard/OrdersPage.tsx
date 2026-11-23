@@ -34,7 +34,7 @@ import { useNow } from "@/lib/useNow";
 import s from "./pages.module.css";
 import { formatUSD, linesTotal } from "@/lib/pricing";
 
-const PAYMENT: Record<PlacedOrder["payment"], string> = { card: "Credit or debit card", ach: "ACH", wire: "Wire transfer" };
+const PAYMENT: Record<PlacedOrder["payment"], string> = { account: "Billed to account", card: "Credit or debit card", ach: "ACH", wire: "Wire transfer" };
 const RANGES = [
   { id: "all", label: "All time" },
   { id: "30", label: "Last 30 days" },

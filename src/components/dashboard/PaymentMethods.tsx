@@ -4,7 +4,7 @@
  * Payment methods (BRD R-27), inside the dashboard shell: the cards and bank
  * accounts on the dealer's account, one of them the default, and the other
  * ways to keep the account current (wire, check, Zelle) through finance.
- * Checkout offers card, ACH and wire (B-05).
+ * Checkout bills orders to the account by default, or takes card, ACH and wire (B-05).
  *
  * In the preview a method keeps only its brand or bank, the last four digits
  * and the expiry, in this browser; no full card or account number is ever

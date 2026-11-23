@@ -41,7 +41,7 @@ import { useNow } from "@/lib/useNow";
 import DashSearch from "./DashSearch";
 import s from "./dashboard.module.css";
 
-const PAYMENT: Record<PlacedOrder["payment"], string> = { card: "Card", ach: "ACH", wire: "Wire" };
+const PAYMENT: Record<PlacedOrder["payment"], string> = { account: "Account", card: "Card", ach: "ACH", wire: "Wire" };
 const AGING_TONE = { current: "#2e9e6b", d30: "#c08a1e", d60: "#d0702a", d90: "#c2503a", d90plus: "#8f2626" } as const;
 const shortDate = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 

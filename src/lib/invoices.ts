@@ -315,7 +315,7 @@ function memoInvoices(lines: MemoLine[], reports: ReturnType<typeof useMemoRepor
     });
 }
 
-/** Orders placed on the site, as invoices: cancelled orders drop out, and a wire order is paid once finance records the wire (lib/orderStatus.ts). Stones taken on memo are not invoiced: they open as memo items instead. */
+/** Orders placed on the site, as invoices: cancelled orders drop out, an order billed to account stays open on the same Net 30 Days terms as the account's other invoices until the dealer pays it here, and a wire order is paid once finance records the wire (lib/orderStatus.ts). Stones taken on memo are not invoiced: they open as memo items instead. */
 function orderInvoices(orders: PlacedOrder[], work: Record<string, OrderWork>): Invoice[] {
   return orders.filter((o) => workOf(work, o).status !== "cancelled" && o.lines.some((l) => !l.memo)).map((o) => {
     const lines: InvoiceLine[] = o.lines.filter((l) => !l.memo).map((l) => ({
@@ -331,7 +331,7 @@ function orderInvoices(orders: PlacedOrder[], work: Record<string, OrderWork>): 
       number,
       date: o.placedAt.slice(0, 10),
       due: o.payment === "wire" ? o.placedAt.slice(0, 10) : iso(new Date(o.placedAt).getTime() + 30 * DAY),
-      terms: o.payment === "wire" ? "Due on receipt" : "Paid at checkout",
+      terms: o.payment === "account" ? "Net 30 Days" : o.payment === "wire" ? "Due on receipt" : "Paid at checkout",
       po: o.details.po,
       source: "order",
       reference: `Order ${o.number}`,
@@ -339,7 +339,7 @@ function orderInvoices(orders: PlacedOrder[], work: Record<string, OrderWork>): 
       shipping: 0,
       tax: 0,
       total,
-      applied: o.payment === "wire" ? (workOf(work, o).pay === "received" ? total : 0) : total,
+      applied: o.payment === "account" ? 0 : o.payment === "wire" ? (workOf(work, o).pay === "received" ? total : 0) : total,
       sample: false,
     };
   });

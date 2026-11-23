@@ -7,8 +7,11 @@
  * 1. Store details: the store, contact, phone and shipping address (the
  *    fields of the live dealer application), a PO number, an in-store
  *    delivery deadline and order notes, prefilled from the session.
- * 2. Payment: credit or debit card, ACH or wire, through Surreal's existing
- *    card processor (BRD B-05). The card is entered in the processor's
+ * 2. Payment: Bill to account, chosen by default (the standard wholesale way,
+ *    client task list item 22): the order is invoiced to the store on terms
+ *    and paid later from Invoices and payments. Or credit or debit card, ACH
+ *    or wire, through Surreal's existing card processor (BRD B-05). The card
+ *    is entered in the processor's
  *    secure form once it is connected, so this page never touches card
  *    numbers; ACH and wire details are on the dashboard's Payment Methods
  *    page. Check and Zelle stay offline, on that same page.
@@ -39,6 +42,16 @@ import s from "./checkout.module.css";
 const STATES = ["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY"];
 
 const METHODS: { id: PaymentMethod; title: string; line: string; detail: ReactNode }[] = [
+  {
+    id: "account",
+    title: "Bill to account",
+    line: "Invoiced to your store on your account terms. Nothing to pay today.",
+    detail: (
+      <p className={s.methodNote}>
+        Surreal invoices your store for this order. The invoice appears in Invoices and payments in your Retailer Dashboard, where it can be paid by card, ACH or wire by its due date.
+      </p>
+    ),
+  },
   {
     id: "card",
     title: "Credit or debit card",
@@ -100,7 +113,7 @@ export default function CheckoutPage() {
   const [step, setStep] = useState(1);
   const [details, setDetails] = useState<StoreDetails | null>(null);
   const [errors, setErrors] = useState<Partial<Record<keyof StoreDetails, string>>>({});
-  const [method, setMethod] = useState<PaymentMethod>("card");
+  const [method, setMethod] = useState<PaymentMethod>("account");
   const [agree, setAgree] = useState(false);
   const [agreeError, setAgreeError] = useState(false);
   const [placed, setPlaced] = useState<PlacedOrder | null>(null);
@@ -209,8 +222,16 @@ export default function CheckoutPage() {
                       <strong>Surreal reviews and accepts your order</strong>, confirming pricing from your price list.
                     </li>
                     <li>
-                      <strong>Payment by {METHODS.find((m) => m.id === placed.payment)?.title.toLowerCase()}</strong>
-                      {placed.payment === "card" ? ", authorized by your card issuer." : ", with the details on your Payment Methods page."}
+                      {placed.payment === "account" ? (
+                        <>
+                          <strong>Billed to your account</strong>: the invoice appears in Invoices and payments in your Retailer Dashboard, to pay by its due date.
+                        </>
+                      ) : (
+                        <>
+                          <strong>Payment by {METHODS.find((m) => m.id === placed.payment)?.title.toLowerCase()}</strong>
+                          {placed.payment === "card" ? ", authorized by your card issuer." : ", with the details on your Payment Methods page."}
+                        </>
+                      )}
                     </li>
                     <li>
                       <strong>{placed.beforeCutoff ? "Next day delivery" : "Delivery"}</strong>

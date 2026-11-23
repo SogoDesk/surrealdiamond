@@ -12,8 +12,9 @@
  *   Each row offers its next step (Confirm, Ship, Delivered) and opens the
  *   order.
  * - The order: next step (confirm with an optional note; ship with carrier
- *   and tracking; mark delivered; cancel with a reason), the payment (charge
- *   a card authorization, mark an ACH debit settled, record a wire with its
+ *   and tracking; mark delivered; cancel with a reason), the payment (an
+ *   order billed to account is paid later on its invoice; charge a card
+ *   authorization, mark an ACH debit settled, record a wire with its
  *   reference and amount, mark the receipt posted in RightClick), the lines
  *   at dealer prices, the store's details, and the timeline with staff notes.
  *   What the dealer sees on their Orders page is marked.
@@ -95,7 +96,7 @@ const DAY = 864e5;
 const dateTime = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 const shortDate = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 const metalLabel = (m: string) => metals.find((x) => x.id === m)?.label ?? m;
-const PAY_TONE: Record<PayState, string> = { authorized: "pending", initiated: "pending", awaiting: "waiting", captured: "ok", settled: "ok", received: "ok", voided: "off", refunded: "off" };
+const PAY_TONE: Record<PayState, string> = { billed: "pending", authorized: "pending", initiated: "pending", awaiting: "waiting", captured: "ok", settled: "ok", received: "ok", voided: "off", refunded: "off" };
 
 function lineText(l: CartLine) {
   if (l.stoneId) {
@@ -240,7 +241,7 @@ function OrderDrawer({ row, open, onClose, readOnly, by }: { row: Row | null; op
                         <input className={s.input} value={cancelNote} onChange={(e) => setCancelNote(e.target.value)} />
                       </label>
                       <p className={s.muted}>
-                        {COLLECTED.includes(w.pay) ? `${formatMoney(w.amount ?? row.total)} is refunded to the original payment.` : w.pay === "authorized" ? "The card authorization is released; nothing was charged." : "Nothing was collected."}
+                        {COLLECTED.includes(w.pay) ? `${formatMoney(w.amount ?? row.total)} is refunded to the original payment.` : w.pay === "authorized" ? "The card authorization is released; nothing was charged." : w.pay === "billed" ? "The invoice is cancelled; nothing is owed." : "Nothing was collected."}
                         {o.lines.some((l) => l.stoneId) ? " Loose stones on the order go back on the diamond page." : ""}
                       </p>
                       <span className={s.cardTools}>
@@ -758,6 +759,7 @@ export default function AdminOrders() {
             </div>
             <select className={s.select} value={method} onChange={(e) => setMethod(e.target.value as PaymentMethod | "all")} aria-label="Payment method">
               <option value="all">Any payment</option>
+              <option value="account">Bill to account</option>
               <option value="card">Card</option>
               <option value="ach">ACH</option>
               <option value="wire">Wire</option>
