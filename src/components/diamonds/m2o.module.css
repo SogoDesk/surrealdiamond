@@ -66,3 +66,10 @@
 .legacy span { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; }
 .legacy strong { font-family: var(--font-editorial), "Urbanist", "Helvetica Neue", Arial, sans-serif; font-weight: 500; font-size: 1.25rem; color: var(--ink); }
 .legacy:focus-visible { outline: 2px solid var(--sky); outline-offset: 3px; }
+/* Grades: a list for each, color and clarity as a from and to pair (client request, November 2026). */
+.select { width: 100%; min-height: 48px; padding: 0 40px 0 14px; border: 0; border-radius: 12px; background: var(--porcelain) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%235a6670' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 4.5 6 7.5l3-3'/%3E%3C/svg%3E") no-repeat right 14px center; box-shadow: inset 0 0 0 1px var(--hairline); font: 400 1rem var(--font-ui), "Urbanist", sans-serif; color: var(--ink); appearance: none; }
+.select:focus { outline: none; background-color: var(--white); box-shadow: inset 0 0 0 1px var(--ink), 0 0 0 4px var(--mist); }
+.select:disabled { color: var(--stone); cursor: not-allowed; }
+.rangeRow { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px; }
+.rangeTo { font-size: 0.8125rem; color: var(--stone); }
+.specLine { font-size: 0.875rem; color: var(--graphite); }

@@ -2,7 +2,11 @@
 
 /**
  * Made to Order (M2O) request (BRD R-19), entered from the diamond page with
- * the search carried in: ?shape=&size=&ratio=&from=. The fields are the live
+ * the search carried in (query.ts m2oHref): shape, size (and cmax for
+ * reference), color and clarity ranges, cut, polish, symmetry, fluor, dims,
+ * table, depthpct, ratio, and from for a stone. Every one prefills its field
+ * and can be changed; a line above the form says what came from the search,
+ * and the sent request keeps the grades as one line. The fields are the live
  * M2O form's (your name, company, customer name for the booklet, phone,
  * email, exact size, shape, length to width ratio, girdle inscription,
  * notes) plus dimensions, prefilled from the search and the dealer session.
@@ -23,14 +27,45 @@ import SiteChrome from "@/components/chrome/SiteChrome";
 import ContactDrawer from "@/components/chrome/ContactDrawer";
 import Footer from "@/components/sections/Footer";
 import ShapeIcon from "@/components/brand/ShapeIcon";
-import { SHAPE_LABEL, stoneById, stoneTitle, type StoneShape } from "@/content/diamonds";
+import { CLARITIES, COLORS, FLUORESCENCE, GRADES, SHAPE_LABEL, stoneById, stoneTitle, type StoneShape } from "@/content/diamonds";
 import { account, brand } from "@/content/site";
-import { M2O_FACTS, M2O_FIELDS, M2O_SHAPES, m2oGrade, type M2OField } from "@/content/m2o";
+import { M2O_FACTS, M2O_FIELDS, M2O_GRADES, M2O_SHAPES, m2oGrade, type M2OField, type M2OGradeField } from "@/content/m2o";
 import { useDealer } from "@/lib/dealer";
 import { m2oRequests as requests, m2oSize, type M2ORequest } from "@/lib/requests";
 import s from "./m2o.module.css";
 
 type Field = M2OField;
+
+/** A grade range from the address ("D-F" or "E"), checked against its scale; "" when absent or not on it. */
+function rangeParam(scale: readonly string[], raw: string | null | undefined): string {
+  if (!raw) return "";
+  const [a, b = a] = raw.toUpperCase().split("-");
+  const i = scale.indexOf(a);
+  const j = scale.indexOf(b);
+  if (i < 0 || j < 0) return "";
+  return i === j ? scale[i] : `${scale[Math.min(i, j)]}-${scale[Math.max(i, j)]}`;
+}
+const oneOf = (scale: readonly string[], raw: string | null | undefined) => (raw && scale.includes(raw) ? raw : "");
+/** "57-62" reads as "57 to 62" in a text field. */
+const words = (raw: string | null | undefined) => (raw ?? "").replace("-", " to ");
+
+/** The grades and proportions asked for, as one line for the summary and the sent request. */
+function specOf(f: Record<Field, string>): string {
+  const grade = (v: string, name: string) => (v ? (v === "Ideal" ? `Ideal ${name}` : `${v} ${name} or better`) : "");
+  return [
+    f.color ? `${words(f.color)} color` : "",
+    f.clarity ? `${words(f.clarity)} clarity` : "",
+    grade(f.cut, "cut"),
+    grade(f.polish, "polish"),
+    grade(f.symmetry, "symmetry"),
+    f.fluorescence ? (f.fluorescence === "None" ? "no fluorescence" : `${f.fluorescence} fluorescence or less`) : "",
+    f.table ? `table ${f.table}%` : "",
+    f.depthPct ? `depth ${f.depthPct}%` : "",
+    f.ratio ? `ratio ${f.ratio}` : "",
+  ]
+    .filter(Boolean)
+    .join(", ");
+}
 
 export default function MadeToOrderPage() {
   return (
@@ -56,26 +91,45 @@ function Request({ params }: { params: URLSearchParams | null }) {
   const dealer = useDealer();
   const from = params?.get("from") ? stoneById(params.get("from") as string) : undefined;
   const qShape = params?.get("shape") as StoneShape | null;
+  const qSize = params?.get("size") ?? "";
+  const qDims = params?.get("dims") ?? "";
   const [values, setValues] = useState<Record<Field, string> | null>(null);
-  /* The size is asked one way or the other: an exact carat weight, or the dimensions (client change request, November 2026). */
-  const [sizeBy, setSizeBy] = useState<"carat" | "dimensions">("carat");
+  /* The size is asked one way or the other: an exact carat weight, or the dimensions (client change request, November 2026). A search with measurements and no carat opens on dimensions. */
+  const [sizeBy, setSizeBy] = useState<"carat" | "dimensions">(() => (!qSize && qDims ? "dimensions" : "carat"));
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [sent, setSent] = useState<M2ORequest | null>(null);
 
-  const form: Record<Field, string> = values ?? {
+  const initial: Record<Field, string> = {
     name: dealer?.contact ?? "",
     company: dealer?.store ?? "",
     customer: "",
     phone: "",
     email: dealer?.email ?? "",
-    size: params?.get("size") ?? "",
-    dimensions: "",
+    size: qSize,
+    dimensions: qSize ? "" : qDims,
     shape: qShape && M2O_SHAPES.includes(qShape) ? qShape : qShape ? "other" : "",
     otherShape: qShape && !M2O_SHAPES.includes(qShape) ? (SHAPE_LABEL[qShape] ?? "") : "",
-    ratio: params?.get("ratio") ?? "",
+    ratio: words(params?.get("ratio")),
+    color: rangeParam(COLORS, params?.get("color")),
+    clarity: rangeParam(CLARITIES, params?.get("clarity")),
+    cut: oneOf(GRADES, params?.get("cut")),
+    polish: oneOf(GRADES, params?.get("polish")),
+    symmetry: oneOf(GRADES, params?.get("symmetry")),
+    fluorescence: oneOf(FLUORESCENCE, params?.get("fluor")),
+    table: words(params?.get("table")),
+    depthPct: words(params?.get("depthpct")),
     inscription: "",
-    notes: from ? `Like stock ${from.id}, ${stoneTitle(from)}` : "",
+    // What the form has no field for still travels: the stone it is like, its measurements beside a carat size, and the top of a carat range.
+    notes: [
+      from ? `Like stock ${from.id}, ${stoneTitle(from)}` : "",
+      qSize && qDims ? `Measurements ${qDims} mm` : "",
+      params?.get("cmax") ? `Searched ${qSize} to ${params.get("cmax")} ct` : "",
+    ]
+      .filter(Boolean)
+      .join(". "),
   };
+  const form: Record<Field, string> = values ?? initial;
+  const searchSpec = [qShape ? (SHAPE_LABEL[qShape] ?? qShape) : "", qSize ? `${qSize} ct` : qDims ? `${qDims} mm` : "", specOf(initial)].filter(Boolean).join(", ");
   const set = (k: Field, v: string) => setValues({ ...form, [k]: v });
   const shapeForIcon = (M2O_SHAPES.includes(form.shape as StoneShape) ? form.shape : qShape ?? "oval") as StoneShape;
 
@@ -100,6 +154,7 @@ function Request({ params }: { params: URLSearchParams | null }) {
       shape: form.shape === "other" ? form.otherShape.trim() : form.shape,
       size: sizeBy === "carat" ? form.size : "",
       dimensions: sizeBy === "dimensions" ? form.dimensions.trim() : undefined,
+      spec: specOf(form) || undefined,
       sentAt: new Date().toISOString(),
     };
     requests.set((list) => [request, ...list]);
@@ -107,7 +162,7 @@ function Request({ params }: { params: URLSearchParams | null }) {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const input = (k: Exclude<Field, "shape" | "notes">, extraHint?: string) => {
+  const input = (k: Exclude<Field, "shape" | "notes" | M2OGradeField>, extraHint?: string) => {
     const opts = M2O_FIELDS[k];
     const hint = extraHint ?? opts.hint;
     return (
@@ -143,6 +198,68 @@ function Request({ params }: { params: URLSearchParams | null }) {
     );
   };
 
+  const gradeField = (g: (typeof M2O_GRADES)[number]) => {
+    if (g.id === "color" || g.id === "clarity") {
+      const scale: readonly string[] = g.id === "color" ? COLORS : CLARITIES;
+      const [best, low = best] = form[g.id] ? form[g.id].split("-") : ["", ""];
+      const id = g.id;
+      return (
+        <div key={id} className={s.field}>
+          <span className={s.label} id={`ml-${id}`}>
+            {g.label}
+            <span className={s.optional}> (optional)</span>
+          </span>
+          <div className={s.rangeRow} role="group" aria-labelledby={`ml-${id}`}>
+            <select
+              className={s.select}
+              aria-label={`${g.label}, best`}
+              value={best}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (!v) return set(id, "");
+                const to = low && scale.indexOf(low) >= scale.indexOf(v) ? low : v;
+                set(id, to === v ? v : `${v}-${to}`);
+              }}
+            >
+              <option value="">Any</option>
+              {scale.map((x) => (
+                <option key={x}>{x}</option>
+              ))}
+            </select>
+            <span className={s.rangeTo}>to</span>
+            <select className={s.select} aria-label={`${g.label}, lowest`} value={low} disabled={!best} onChange={(e) => set(id, e.target.value === best ? best : `${best}-${e.target.value}`)}>
+              {!best && <option value="">Any</option>}
+              {scale
+                .filter((x) => !best || scale.indexOf(x) >= scale.indexOf(best))
+                .map((x) => (
+                  <option key={x}>{x}</option>
+                ))}
+            </select>
+          </div>
+        </div>
+      );
+    }
+    const options: [string, string][] =
+      g.id === "fluorescence" ? FLUORESCENCE.map((f) => [f, f === "None" ? "None" : `${f} or less`]) : GRADES.map((x, i) => [x, i === 0 ? x : `${x} or better`]);
+    return (
+      <label key={g.id} className={s.field}>
+        <span className={s.label}>
+          {g.label}
+          <span className={s.optional}> (optional)</span>
+        </span>
+        <select className={s.select} value={form[g.id]} onChange={(e) => set(g.id, e.target.value)}>
+          <option value="">No preference</option>
+          {options.map(([v, label]) => (
+            <option key={v} value={v}>
+              {label}
+            </option>
+          ))}
+        </select>
+        {g.hint && <span className={s.hint}>{g.hint}</span>}
+      </label>
+    );
+  };
+
   return (
     <section className={s.section} aria-labelledby="m2o-title">
       <div className={s.wrap}>
@@ -174,6 +291,7 @@ function Request({ params }: { params: URLSearchParams | null }) {
                   Request sent for a {m2oSize(sent)} {(SHAPE_LABEL[sent.shape as StoneShape] ?? sent.shape).toLowerCase()}. Surreal confirms the specification,
                   the program fee and timing with you. Questions: {brand.office.phone}.
                 </p>
+                {sent.spec && <p className={s.specLine}>Asked for: {sent.spec}.</p>}
                 <p className={s.previewNote}>Preview: the request is kept in this browser; request emails connect with the dealer platform.</p>
                 <div className={s.doors}>
                   <Link href="/diamonds" className={s.primary}>
@@ -194,10 +312,12 @@ function Request({ params }: { params: URLSearchParams | null }) {
               </div>
             ) : (
               <form className={s.form} onSubmit={submit} noValidate>
-                {(params?.get("shape") || params?.get("size") || from) && (
+                {searchSpec && (
                   <p className={s.prefill}>
                     <ShapeIcon shape={shapeForIcon} className={s.prefillIcon} />
-                    Filled in from your {from ? `stone, stock ${from.id}` : "diamond search"}. Change anything below.
+                    <span>
+                      Filled in from your {from ? `stone, stock ${from.id}` : "diamond search"}: {searchSpec}. Change anything below.
+                    </span>
                   </p>
                 )}
                 <fieldset className={s.group}>
@@ -251,6 +371,14 @@ function Request({ params }: { params: URLSearchParams | null }) {
                     {sizeBy === "carat" ? input("size", Number(form.size) > 0 ? m2oGrade(Number(form.size)) : undefined) : input("dimensions")}
                     {input("ratio")}
                     {input("inscription")}
+                  </div>
+                </fieldset>
+                <fieldset className={s.group}>
+                  <legend className={s.legend}>Grades and proportions</legend>
+                  <div className={s.grid}>
+                    {M2O_GRADES.map(gradeField)}
+                    {input("table")}
+                    {input("depthPct")}
                   </div>
                 </fieldset>
                 <fieldset className={s.group}>

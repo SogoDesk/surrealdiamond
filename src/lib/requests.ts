@@ -13,6 +13,8 @@ export interface M2ORequest {
   size: string;
   /** Length by width in mm, when the stone is sized to a setting instead of (or as well as) a carat weight. */
   dimensions?: string;
+  /** Grades and proportions asked for, as one line: "D to F color, VVS1 to VS1 clarity, Excellent cut or better". */
+  spec?: string;
   sentAt: string;
 }
 

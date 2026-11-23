@@ -175,17 +175,77 @@ export function feedOptions(list: Stone[]) {
 }
 export type FeedOptions = ReturnType<typeof feedOptions>;
 
-/** Made to Order link carrying the search: first shape, a size and a ratio (R-19). */
+/** "1.50" for one value, "1.50-2.00" for a range, null when neither end is set. */
+function span(lo: number | null, hi: number | null, digits: number): string | null {
+  if (lo === null && hi === null) return null;
+  if (lo !== null && hi !== null && lo !== hi) return `${lo.toFixed(digits)}-${hi.toFixed(digits)}`;
+  return (lo ?? hi ?? 0).toFixed(digits);
+}
+
+/** Of several grades picked, the lowest on the scale: what a made stone has to reach. */
+function lowest<T extends string>(scale: readonly T[], picked: readonly T[]): T | null {
+  return picked.length ? picked.reduce((a, b) => (scale.indexOf(b) > scale.indexOf(a) ? b : a)) : null;
+}
+
+/**
+ * Made to Order link carrying the search (R-19; client request, November
+ * 2026): the shape, the carat (the lower end of a range, with the upper end
+ * for reference), color and clarity ranges, the lowest cut, polish,
+ * symmetry and fluorescence picked, measurements, table and depth and the
+ * ratio. From a stone, that stone's own figures. The M2O page reads them
+ * into its form, where each can be changed. The lab is left out: every M2O
+ * diamond comes with an IGI certificate.
+ */
 export function m2oHref(q: DiamondQuery, stone?: Stone): string {
-  const params = new URLSearchParams();
+  const p = new URLSearchParams();
   const shape = stone?.shape ?? q.shapes[0];
-  if (shape) params.set("shape", shape);
-  const size = stone?.carat ?? q.caratMin ?? null;
-  if (size !== null) params.set("size", size.toFixed(2));
-  const ratio = stone?.ratio ?? q.ratioMin ?? null;
-  if (ratio !== null && shape && shape !== "round") params.set("ratio", ratio.toFixed(2));
-  if (stone) params.set("from", stone.id);
-  const qs = params.toString();
+  if (shape) p.set("shape", shape);
+  if (stone) {
+    p.set("size", stone.carat.toFixed(2));
+    p.set("color", stone.color);
+    p.set("clarity", stone.clarity);
+    if (stone.cut) p.set("cut", stone.cut);
+    p.set("polish", stone.polish);
+    p.set("symmetry", stone.symmetry);
+    p.set("fluor", stone.fluorescence);
+    p.set("dims", `${stone.length.toFixed(2)} x ${stone.width.toFixed(2)} x ${stone.depth.toFixed(2)}`);
+    p.set("table", String(stone.tablePct));
+    p.set("depthpct", String(stone.depthPct));
+    if (stone.shape !== "round") p.set("ratio", stone.ratio.toFixed(2));
+    p.set("from", stone.id);
+  } else {
+    if (q.caratMin !== null) p.set("size", q.caratMin.toFixed(2));
+    if (q.caratMax !== null && q.caratMax !== q.caratMin) p.set("cmax", q.caratMax.toFixed(2));
+    if (q.color) p.set("color", q.color[0] === q.color[1] ? COLORS[q.color[0]] : `${COLORS[q.color[0]]}-${COLORS[q.color[1]]}`);
+    if (q.clarity) p.set("clarity", q.clarity[0] === q.clarity[1] ? CLARITIES[q.clarity[0]] : `${CLARITIES[q.clarity[0]]}-${CLARITIES[q.clarity[1]]}`);
+    const cut = lowest(GRADES, q.cut);
+    if (cut) p.set("cut", cut);
+    if (q.polish) p.set("polish", q.polish);
+    if (q.symmetry) p.set("symmetry", q.symmetry);
+    const fluor = lowest(FLUORESCENCE, q.fluorescence);
+    if (fluor) p.set("fluor", fluor);
+    const dims = (
+      [
+        ["L", q.lengthMin, q.lengthMax],
+        ["W", q.widthMin, q.widthMax],
+        ["D", q.depthMin, q.depthMax],
+      ] as const
+    )
+      .map(([k, lo, hi]) => {
+        const v = span(lo, hi, 2);
+        return v ? `${k} ${v.replace("-", " to ")}` : null;
+      })
+      .filter(Boolean)
+      .join(", ");
+    if (dims) p.set("dims", dims);
+    const table = span(q.tableMin, q.tableMax, 1);
+    if (table) p.set("table", table);
+    const depthPct = span(q.depthPctMin, q.depthPctMax, 1);
+    if (depthPct) p.set("depthpct", depthPct);
+    const ratio = span(q.ratioMin, q.ratioMax, 2);
+    if (ratio && shape !== "round") p.set("ratio", ratio);
+  }
+  const qs = p.toString();
   return `/diamonds/made-to-order${qs ? `?${qs}` : ""}`;
 }
 
