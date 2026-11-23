@@ -3,10 +3,10 @@
 /**
  * The Retailer Dashboard's frame (BRD 5.7, R-30), in the WB Mason customer
  * portal manner: the site header above, then a sidebar with the dealer's
- * store card and the sections grouped (Overview, Orders and memo, Order,
- * Grow your store, Your account), and the page on the right. Sections still
- * in design carry a "Soon" tag, the next one "Next". On tablets and phones
- * the sidebar becomes a row of chips that scrolls sideways.
+ * store card (with a small Log out link) and the sections grouped (Overview,
+ * Billing, Orders and memo, Your account), and the page on the right. On
+ * tablets and phones the sidebar becomes the store card over a row of chips
+ * that scrolls sideways.
  *
  * The dashboard is for signed-in dealers only: a visitor gets the log in and
  * Become a dealer doors in its place. The dealer session lives in this
@@ -47,6 +47,10 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
   const hydrated = useHydrated();
   const pathname = usePathname();
   const router = useRouter();
+  const logOut = () => {
+    signOut();
+    router.push("/");
+  };
 
   const body = !hydrated ? (
     <div className={s.skeleton} aria-busy="true" aria-label="Loading your dashboard">
@@ -80,6 +84,10 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
           <span className={s.storeText}>
             <strong>{dealer.store}</strong>
             <span>{dealer.email}</span>
+            {/* At the top on every screen size, phones included (client task list, November 2026, item 19). */}
+            <button type="button" className={s.storeLogout} onClick={logOut}>
+              Log out
+            </button>
           </span>
           {dealer.demo && <span className={s.demoTag}>Preview</span>}
         </div>
@@ -129,16 +137,6 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
             <br />
             {brand.office.hours}
           </p>
-          <button
-            type="button"
-            className={s.logout}
-            onClick={() => {
-              signOut();
-              router.push("/");
-            }}
-          >
-            Log out
-          </button>
         </div>
       </aside>
       <div className={s.content}>{children}</div>

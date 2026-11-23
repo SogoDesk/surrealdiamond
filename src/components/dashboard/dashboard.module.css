@@ -34,6 +34,9 @@
 .storeText { display: flex; flex-direction: column; min-width: 0; font-size: 0.75rem; color: var(--on-dark-muted); }
 .storeText strong { font-weight: 600; font-size: 0.9375rem; color: var(--porcelain); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .storeText span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.storeLogout { align-self: flex-start; margin-top: 4px; font-size: 0.75rem; color: var(--porcelain); text-decoration: underline; text-decoration-color: var(--sky); text-underline-offset: 3px; transition: color 0.2s var(--ease-surreal); }
+.storeLogout:hover { color: var(--sky); }
+.storeLogout:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; border-radius: 2px; }
 .demoTag { position: absolute; top: 8px; right: 8px; padding: 2px 7px; border-radius: 999px; background: rgba(134, 223, 255, 0.16); font-size: 0.5625rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--sky); }
 .nav { display: flex; flex-direction: column; gap: 6px; }
 .navGroup ul { margin: 0; padding: 0; list-style: none; }
@@ -50,7 +53,6 @@
 .sideFoot { display: flex; flex-direction: column; gap: 10px; padding: 12px 10px 4px; border-top: 1px solid var(--hairline); font-size: 0.75rem; line-height: 1.5; color: var(--stone); }
 .sideFoot p { margin: 0; }
 .sideFoot a { color: var(--ink); }
-.logout { align-self: flex-start; font-size: 0.75rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
 
 @media (max-width: 1023px) {
   .sidebar { position: static; max-height: none; overflow: visible; padding: 10px; }
