@@ -8,6 +8,11 @@
  * SPIF, authorized users and policies tiles are out of the navigation until
  * Surreal asks for them back (Q5); their notes stay in docs/CONTEXT.md.
  *
+ * The sidebar lists the dashboard's own pages only (client task list,
+ * November 2026, item 21): Diamond search, Made to Order, Diamond Legacy,
+ * Custom jewelry and the cart are in the site header already, so they left it.
+ * The dashboard home still links to them where it helps.
+ *
  * billing: shown to the store's account owner only, not to associates.
  */
 
@@ -17,7 +22,7 @@ export type DashIcon =
   | "home" | "orders" | "memo" | "cart" | "search" | "m2o" | "legacy" | "custom"
   | "invoices" | "shows" | "payments" | "account";
 
-export type DashGroup = "Overview" | "Billing" | "Orders and memo" | "Order" | "Your account";
+export type DashGroup = "Overview" | "Billing" | "Orders and memo" | "Your account";
 
 export interface DashSection {
   id: string;
@@ -34,7 +39,7 @@ export interface DashSection {
   fresh?: boolean;
 }
 
-export const dashGroups: DashGroup[] = ["Overview", "Billing", "Orders and memo", "Order", "Your account"];
+export const dashGroups: DashGroup[] = ["Overview", "Billing", "Orders and memo", "Your account"];
 
 export { CUSTOM_PORTAL_URL };
 
@@ -46,12 +51,6 @@ export const dashSections: DashSection[] = [
 
   { id: "orders", label: "Orders", line: "Order history and one-click reorder", href: "/dashboard/orders", group: "Orders and memo", icon: "orders" },
   { id: "memo", label: "Open memo items", line: "Memo reconciliation, prices updated daily", href: "/dashboard/memo", group: "Orders and memo", icon: "memo" },
-  { id: "cart", label: "Cart and checkout", line: "Pay by card, ACH or wire", href: "/cart", group: "Orders and memo", icon: "cart" },
-
-  { id: "diamonds", label: "Diamond search", line: "Loose stones, one line each", href: "/diamonds", group: "Order", icon: "search" },
-  { id: "m2o", label: "Made to Order", line: "Grow a stone to your client's size", href: "/diamonds/made-to-order", group: "Order", icon: "m2o" },
-  { id: "legacy", label: "Diamond Legacy", line: "Diamonds grown from the same seed line", href: "/legacy", group: "Order", icon: "legacy" },
-  { id: "custom", label: "Custom jewelry", line: "The custom order portal", href: CUSTOM_PORTAL_URL, group: "Order", icon: "custom", external: true },
 
   { id: "trade-shows", label: "Trade show appointments", line: "Meet us at the shows", href: "/dashboard/trade-shows", group: "Your account", icon: "shows" },
   { id: "account", label: "Account settings", line: "Your details and password", href: "/dashboard/account", group: "Your account", icon: "account" },
