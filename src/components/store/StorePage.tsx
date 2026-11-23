@@ -4,8 +4,9 @@
  * The store listing, on Tanishq's listing pattern in the Surreal design
  * system (docs/CONTEXT.md, "UX reference"). Both /jewelry and
  * /jewelry/[category] render it. Top to bottom: breadcrumb, title with the
- * piece count and the dealer pricing note, a rail of round division
- * thumbnails, the sticky toolbar (Filters, Metal, Shape, Sort, density), the
+ * piece count and the dealer pricing note, one compact row of division pills
+ * (Collections and Programs open as panels), the toolbar (Filters, Metal,
+ * Shape, Sort, density), the
  * active filter chips, then the grid: four to six cards a row on desktop,
  * with the "find your match" panel after the second row, a Made to Order
  * tile after the fourth, campaign photographs through the rows, and Load
@@ -23,7 +24,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Suspense, useCallback, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import SiteChrome from "@/components/chrome/SiteChrome";
 import ContactDrawer from "@/components/chrome/ContactDrawer";
@@ -34,7 +35,7 @@ import { categoryFor, clearedQuery, matchesQuery, parseQuery, poolFor, serialize
 import { renderSrc, type Category } from "@/content/catalog";
 import { applyPins, pageSort, useMerch } from "@/lib/merch";
 import { useWithMetalsList } from "@/lib/metals";
-import { divisionGroups, divisions } from "@/content/divisions";
+import { divisionGroups, divisions, type Division, type DivisionGroup } from "@/content/divisions";
 import { account } from "@/content/site";
 import { useDealer } from "@/lib/dealer";
 import StoreToolbar, { type Density } from "./StoreToolbar";
@@ -67,33 +68,98 @@ function WithParams({ category }: StorePageProps) {
   return <StoreView category={category} params={params} />;
 }
 
-/** The divisions in labelled groups: the jewelry categories (round), then the collections and programs (rounded squares), each wrapping so no row runs off the page (client change request, November 2026). */
-function DivisionRail({ active }: { active: Category | null }) {
+const shortLabel = (label: string) => label.replace(" Collection", "");
+
+function DivisionThumb({ division }: { division: Division }) {
+  return division.image ? (
+    <Image src={renderSrc(division.image)} alt="" width={96} height={96} sizes="40px" />
+  ) : division.motif ? (
+    <DivisionMotif motif={division.motif} className={s.pillMotif} />
+  ) : null;
+}
+
+/**
+ * The divisions as one compact row, so the pieces start high on the first
+ * screen (client feedback, November 2026): All and the jewellery categories as
+ * pills with a small thumbnail, then Collections and Programs as two pills
+ * that open a panel of their tiles. Laptops wrap the row; tablets and phones
+ * scroll it sideways. On a collection or program page its pill shows the
+ * page's name.
+ */
+function DivisionPills({ active }: { active: Category | null }) {
+  const [open, setOpen] = useState<DivisionGroup | null>(null);
+  const ref = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(null);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(null);
+    document.addEventListener("pointerdown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const menus = divisionGroups.filter((g) => g.id !== "types");
+
   return (
-    <nav className={s.rail} aria-label="Jewellery divisions">
-      {divisionGroups.map((g) => (
-        <div key={g.id} className={s.railGroup} data-group={g.id}>
-          <p className={s.railTitle}>{g.label}</p>
-          <ul className={s.railList}>
-            {g.id === "types" && (
-              <li>
-                <Link href="/jewelry" className={s.railItem} aria-current={active === null ? "page" : undefined}>
-                  <span className={`${s.railThumb} ${s.railAll}`} aria-hidden>
-                    All
-                  </span>
-                  <span className={s.railLabel}>All jewellery</span>
-                </Link>
-              </li>
-            )}
+    <nav ref={ref} className={s.pills} aria-label="Jewellery divisions">
+      <ul className={s.pillRow}>
+        <li>
+          <Link href="/jewelry" className={`${s.pill} ${s.pillText}`} aria-current={active === null ? "page" : undefined}>
+            All jewellery
+          </Link>
+        </li>
+        {divisions
+          .filter((d) => d.group === "types")
+          .map((d) => (
+            <li key={d.id}>
+              <Link href={d.href} className={s.pill} aria-current={active === d.id ? "page" : undefined}>
+                <span className={s.pillThumb} aria-hidden>
+                  <DivisionThumb division={d} />
+                </span>
+                {d.label}
+              </Link>
+            </li>
+          ))}
+        {menus.map((g) => {
+          const current = divisions.find((d) => d.group === g.id && d.id === active);
+          return (
+            <li key={g.id}>
+              <button
+                type="button"
+                className={`${s.pill} ${s.pillMenu}`}
+                aria-expanded={open === g.id}
+                aria-controls={`divisions-${g.id}`}
+                data-on={current ? "true" : undefined}
+                onClick={() => setOpen((o) => (o === g.id ? null : g.id))}
+              >
+                {current ? shortLabel(current.label) : g.label}
+                <svg aria-hidden viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" className={s.pillChevron}>
+                  <path d="m3 4.5 3 3 3-3" />
+                </svg>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {menus.map((g) => (
+        <div key={g.id} id={`divisions-${g.id}`} className={s.pillPanel} hidden={open !== g.id}>
+          <p className={s.pillPanelTitle}>{g.label}</p>
+          <ul className={s.pillPanelList}>
             {divisions
               .filter((d) => d.group === g.id)
               .map((d) => (
                 <li key={d.id}>
-                  <Link href={d.href} className={s.railItem} aria-current={active === d.id ? "page" : undefined}>
-                    <span className={s.railThumb} aria-hidden>
-                      {d.image ? <Image src={renderSrc(d.image)} alt="" width={120} height={120} sizes="64px" /> : d.motif ? <DivisionMotif motif={d.motif} className={s.railMotif} /> : null}
+                  <Link href={d.href} className={s.tile} aria-current={active === d.id ? "page" : undefined} onClick={() => setOpen(null)}>
+                    <span className={s.tileThumb} aria-hidden>
+                      <DivisionThumb division={d} />
                     </span>
-                    <span className={s.railLabel}>{d.label.replace(" Collection", "")}</span>
+                    <span className={s.tileLabel}>{shortLabel(d.label)}</span>
                   </Link>
                 </li>
               ))}
@@ -177,7 +243,8 @@ function StoreView({ category, params }: StorePageProps & { params: URLSearchPar
                 </span>
                 <span className={s.dealerNoteDoors}>
                   <Link href={account.login} className={s.dealerLogin}>
-                    Log in
+                    <span className={s.loginLong}>Log in</span>
+                    <span className={s.loginShort}>Log in for pricing</span>
                   </Link>
                   <Link href={account.apply} className={s.dealerApply}>
                     Become a dealer
@@ -186,8 +253,8 @@ function StoreView({ category, params }: StorePageProps & { params: URLSearchPar
               </div>
             )}
           </div>
+          <DivisionPills active={category} />
         </div>
-        <DivisionRail active={category} />
       </section>
 
       <section className={s.body} aria-label={`${title}, pieces`}>

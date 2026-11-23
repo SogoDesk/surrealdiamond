@@ -5,7 +5,7 @@
 /* ---------- Head ---------- */
 .head {
   position: relative;
-  padding: calc(var(--header-full) + 22px) 0 8px;
+  padding: calc(var(--header-full) + 16px) 0 10px;
   background: var(--porcelain);
 }
 .crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 0.8125rem; color: var(--stone); }
@@ -16,16 +16,16 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 20px 40px;
+  gap: 12px 40px;
   flex-wrap: wrap;
-  margin-top: 18px;
+  margin-top: 10px;
 }
-.titleText { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.titleText { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .title {
   margin: 0;
   font-family: var(--font-editorial), "Urbanist", "Helvetica Neue", Arial, sans-serif;
   font-weight: 500;
-  font-size: clamp(2.25rem, 3.6vw, 3.25rem);
+  font-size: clamp(1.75rem, 2.6vw, 2.5rem);
   line-height: 1.05;
   color: var(--ink);
 }
@@ -34,8 +34,8 @@
 .dealerNote {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 10px 10px 10px 18px;
+  gap: 14px;
+  padding: 6px 6px 6px 16px;
   border-radius: 999px;
   background: var(--white);
   box-shadow: inset 0 0 0 1px var(--hairline);
@@ -44,10 +44,11 @@
 }
 .dealerNoteText strong { font-weight: 600; color: var(--ink); }
 .dealerNoteDoors { display: inline-flex; gap: 6px; }
+.loginShort { display: none; }
 .dealerLogin, .dealerApply {
   display: inline-flex;
   align-items: center;
-  height: 34px;
+  height: 32px;
   padding: 0 16px;
   border-radius: 999px;
   font-size: 0.6875rem;
@@ -60,73 +61,91 @@
 .dealerLogin:hover { background: var(--mist); }
 .dealerApply { background: var(--ink); color: var(--porcelain); }
 .dealerApply:hover { background: var(--ink-hover); color: var(--ink-hover-fg); }
+/* Phones: no description, and the pricing note becomes one line of text links. */
 @media (max-width: 767px) {
-  .dealerNote { width: 100%; border-radius: var(--radius-md); flex-direction: column; align-items: flex-start; padding: 14px; }
+  .blurb { display: none; }
+  .dealerNote { padding: 0; gap: 16px; background: none; box-shadow: none; border-radius: 0; }
+  .dealerNoteText { display: none; }
+  .dealerNoteDoors { gap: 16px; }
+  .dealerLogin, .dealerApply { height: auto; padding: 0; background: none; box-shadow: none; color: var(--ink); font-size: 0.875rem; letter-spacing: 0; text-transform: none; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+  .dealerLogin:hover, .dealerApply:hover { background: none; color: var(--ink); }
+  .loginLong { display: none; }
+  .loginShort { display: inline; }
 }
 
-/* Division rail: the categories in round thumbnails, then the collections and programs in rounded squares, each group labelled and wrapping */
-.rail {
-  --inset: max(var(--gutter), calc((100vw - 1600px) / 2 + var(--gutter)));
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px clamp(28px, 4vw, 64px);
-  margin-top: 22px;
-  padding: 4px var(--inset) 14px;
+/* Division pills: All and the categories in one compact row, then Collections and Programs as pills that open a panel of tiles (client feedback, November 2026) */
+.pills { position: relative; margin-top: 12px; }
+.pillRow { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.pillRow > li { flex: 0 0 auto; }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 14px 0 5px;
+  border-radius: 999px;
+  background: var(--white);
+  box-shadow: inset 0 0 0 1px var(--hairline);
+  font-size: 0.8125rem;
+  color: var(--graphite);
+  white-space: nowrap;
+  transition: background-color 0.25s var(--ease-surreal), color 0.25s var(--ease-surreal), box-shadow 0.25s var(--ease-surreal);
 }
-.railGroup { min-width: 0; }
-.railGroup[data-group="types"] { flex: 1 1 100%; }
-.railGroup:not([data-group="types"]) { padding-top: 16px; border-top: 1px solid var(--hairline); }
-.railTitle { margin: 0 0 10px; font-size: 0.6875rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--stone); }
-.railList {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 14px clamp(14px, 1.6vw, 26px);
-}
-.railList > li { flex: 0 0 auto; }
-/* The categories share the row evenly, so no item is left alone on a line of its own. */
-.railGroup[data-group="types"] .railList { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 14px 10px; }
-.railGroup[data-group="types"] .railItem { width: 100%; }
-.railItem { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 84px; text-align: center; }
-.railThumb {
+.pill:hover { box-shadow: inset 0 0 0 1px var(--ink); color: var(--ink); }
+.pill[aria-current], .pillMenu[data-on] { background: var(--ink); color: var(--porcelain); box-shadow: none; }
+.pill:focus-visible { outline: 2px solid var(--sky); outline-offset: 2px; }
+.pillMenu, .pillText { padding: 0 16px; }
+.pillMenu { gap: 6px; }
+.pillMenu[aria-expanded="true"]:not([data-on]) { background: var(--mist); color: var(--ink); box-shadow: none; }
+.pillChevron { transition: transform 0.25s var(--ease-surreal); }
+.pillMenu[aria-expanded="true"] .pillChevron { transform: rotate(180deg); }
+.pillThumb, .tileThumb {
   /* Light tokens again inside the render grounds, for the dark theme. */
   --ink: #0b1f2a;
-  --graphite: #3a3f44;
-  --stone: #636e78;
   --white: #ffffff;
   --hairline: #dce1e6;
-  --mist: #cff2ff;
   --sky: #86dfff;
   --line: #86dfff;
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 68px;
-  height: 68px;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: var(--white);
   box-shadow: inset 0 0 0 1px var(--hairline);
   overflow: hidden;
-  transition: box-shadow 0.35s var(--ease-surreal), transform 0.5s var(--ease-surreal);
 }
-.railThumb img { width: 84%; height: 84%; object-fit: contain; mix-blend-mode: multiply; }
-.railMotif { width: 100%; height: 100%; }
-.railGroup:not([data-group="types"]) .railThumb { border-radius: 18px; }
-@media (max-width: 599px) {
-  .railItem { width: 72px; }
-  .railThumb { width: 58px; height: 58px; }
-  .railGroup[data-group="types"] .railList { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
+.pillThumb img, .tileThumb img { width: 84%; height: 84%; object-fit: contain; mix-blend-mode: multiply; }
+.pillMotif { width: 100%; height: 100%; }
+/* Tablets and phones: one row that scrolls sideways */
+@media (max-width: 1023px) {
+  .pillRow { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--gutter)); padding: 2px var(--gutter); }
+  .pillRow::-webkit-scrollbar { display: none; }
 }
-.railAll { font-family: var(--font-display), "Italiana", serif; font-size: 1.125rem; letter-spacing: 0.06em; background: var(--navy); color: var(--sky); box-shadow: none; }
-.railLabel { font-size: 0.75rem; line-height: 1.25; color: var(--graphite); }
-.railItem:hover .railThumb { transform: translateY(-3px); box-shadow: inset 0 0 0 1px var(--hairline), var(--shadow-card); }
-.railItem[aria-current] .railThumb { box-shadow: 0 0 0 2px var(--porcelain), 0 0 0 3px var(--ink); }
-.railItem[aria-current] .railLabel { color: var(--ink); font-weight: 600; }
-.railItem:focus-visible { outline: none; }
-.railItem:focus-visible .railThumb { box-shadow: 0 0 0 2px var(--porcelain), 0 0 0 4px var(--sky); }
+.pillPanel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  max-width: 100%;
+  padding: 16px 18px 18px;
+  border-radius: var(--radius-md);
+  background: var(--white);
+  box-shadow: inset 0 0 0 1px var(--hairline), var(--shadow-card);
+}
+.pillPanel[hidden] { display: none; }
+.pillPanelTitle { margin: 0 0 12px; font-size: 0.6875rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--stone); }
+.pillPanelList { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 14px 18px; }
+.tile { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 84px; text-align: center; }
+.tile .tileThumb { width: 64px; height: 64px; border-radius: 18px; transition: box-shadow 0.3s var(--ease-surreal), transform 0.4s var(--ease-surreal); }
+.tile:hover .tileThumb { transform: translateY(-2px); box-shadow: inset 0 0 0 1px var(--hairline), var(--shadow-card); }
+.tile[aria-current] .tileThumb { box-shadow: 0 0 0 2px var(--white), 0 0 0 3px var(--ink); }
+.tileLabel { font-size: 0.75rem; line-height: 1.25; color: var(--graphite); }
+.tile[aria-current] .tileLabel { color: var(--ink); font-weight: 600; }
+.tile:focus-visible { outline: none; }
+.tile:focus-visible .tileThumb { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--sky); }
 
 /* ---------- Body ---------- */
 .body {
