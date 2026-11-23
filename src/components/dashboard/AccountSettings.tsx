@@ -6,16 +6,22 @@
  * the customer record (imported in the console, Dealers); changes to them go
  * through Surreal so RightClick stays the record. The demo dealer has no
  * password to change.
+ *
+ * Forgot your password? (client task list, November 2026, item 20) asks the
+ * API to email a reset link to the dealer's own address. Until a mail service
+ * is set up the API answers that it could not send, and this says so; in the
+ * preview there is no email at all, so it says the same.
  */
 
 import Link from "next/link";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { signOut, useDealer } from "@/lib/dealer";
 import { checkPassword, setPassword, verifyPassword } from "@/lib/auth";
 import { useCustomers, type Customer } from "@/lib/customers";
 import { authApi, type AccountView } from "@/lib/api/auth";
 import { API_AUTH, ApiRequestError } from "@/lib/api/client";
+import { brand } from "@/content/site";
 import PasswordRules from "@/components/account/PasswordRules";
 import p from "./pages.module.css";
 import s from "./account.module.css";
@@ -49,6 +55,56 @@ function peopleFrom(view: AccountView): Customer[] {
 }
 
 const date = (iso?: string) => (iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "");
+
+/** Forgot your password? A reset link to the dealer's own email, or a clear error when it could not be sent. */
+function ForgotPassword({ email }: { email: string }) {
+  const [busy, setBusy] = useState(false);
+  const [sent, setSent] = useState("");
+  const [error, setError] = useState<ReactNode>(null);
+
+  const couldNotSend = (
+    <>
+      We could not send the reset email right now. Please try again later, or call us at <a href={brand.office.phoneHref}>{brand.office.phone}</a>.
+    </>
+  );
+
+  const request = async () => {
+    setBusy(true);
+    setSent("");
+    setError(null);
+    try {
+      if (!API_AUTH) {
+        // The preview sends no email.
+        await new Promise((resolve) => setTimeout(resolve, 600));
+        throw new Error("No email in the preview.");
+      }
+      await authApi.resetLink();
+      setSent(`We sent a link to set a new password to ${email}. It works for one hour.`);
+    } catch (failure) {
+      setError(failure instanceof ApiRequestError && failure.status === 429 ? "Too many requests. Please wait a minute and try again." : couldNotSend);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className={`${s.wideField} ${s.forgot}`}>
+      <button type="button" className={s.forgotLink} onClick={request} disabled={busy} aria-busy={busy}>
+        {busy ? "Sending a reset link" : "Forgot your password?"}
+      </button>
+      {error && (
+        <p className={s.error} role="alert">
+          {error}
+        </p>
+      )}
+      {sent && (
+        <p className={p.notice} role="status">
+          {sent}
+        </p>
+      )}
+    </div>
+  );
+}
 
 function ChangePassword({ c }: { c: Customer }) {
   const [current, setCurrent] = useState("");
@@ -103,6 +159,7 @@ function ChangePassword({ c }: { c: Customer }) {
         <span>Current password</span>
         <PasswordInput autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} />
       </label>
+      <ForgotPassword email={c.email} />
       <label className={s.field}>
         <span>New password</span>
         <PasswordInput autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} aria-describedby="change-rules" />

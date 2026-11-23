@@ -27,6 +27,8 @@ export const authApi = {
   resend: (token: string) => post<unknown>("/auth/setup/resend", { token }),
   setup: (token: string, password: string) => post<Me>("/auth/setup", { token, password }),
   changePassword: (current: string, next: string) => post<Me>("/auth/password", { current, next }),
+  /** Forgot your password, while signed in: a reset link to the person's own email; 503 email_unavailable when it could not be sent. */
+  resetLink: () => post<{ message: string }>("/auth/password/reset-link"),
   mfaBegin: () => post<MfaBegin>("/auth/mfa/setup"),
   mfaVerify: (code: string) => post<MfaResult>("/auth/mfa/verify", { code }),
   mfaRecover: (code: string) => post<void>("/auth/mfa/recover", { code }),
