@@ -103,7 +103,7 @@ export default function MiniCart() {
             <div className={styles.miniEmpty}>
               <p>Your cart is empty.</p>
               <Link href="/jewelry" className={styles.miniPrimary} onClick={() => setOpen(false)}>
-                Browse jewelry
+                Browse jewellery
               </Link>
             </div>
           ) : (

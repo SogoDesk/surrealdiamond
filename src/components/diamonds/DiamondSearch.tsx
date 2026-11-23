@@ -370,7 +370,7 @@ function SearchView({ params, program }: { params: URLSearchParams | null; progr
                   <span aria-hidden>·</span>
                   <Link href="/legacy">Diamond Legacy</Link>
                   <span aria-hidden>·</span>
-                  <Link href="/custom">Custom jewelry</Link>
+                  <Link href="/custom">Custom jewellery</Link>
                 </p>
                 {!dealer && (
                   <p className={s.storyLink}>

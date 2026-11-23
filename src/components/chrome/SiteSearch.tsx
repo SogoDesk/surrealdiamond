@@ -28,7 +28,7 @@ const PROMPTS = ["engagement rings", "oval diamonds", "1-2ct oval DEF", "a style
 
 interface Option {
   id: string;
-  group: "Diamonds" | "Jewelry" | "Pages" | "Popular searches" | "";
+  group: "Diamonds" | "Jewellery" | "Pages" | "Popular searches" | "";
   label: string;
   meta: string;
   href: string;
@@ -99,7 +99,7 @@ export default function SiteSearch() {
     r.products.forEach((p) =>
       out.push({
         id: `p-${p.id}`,
-        group: "Jewelry",
+        group: "Jewellery",
         label: p.name,
         meta: [categoryLabel(p.category), styleRef(p)].filter(Boolean).join(" · "),
         href: productHref(p),
@@ -174,7 +174,7 @@ export default function SiteSearch() {
           <path d="M10.6 10.6 15 15" />
         </svg>
         <label htmlFor="site-search" className={styles.srOnly}>
-          Search jewelry, diamonds and pages
+          Search jewellery, diamonds and pages
         </label>
         <input
           id="site-search"

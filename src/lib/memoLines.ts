@@ -71,7 +71,7 @@ export function useMemoLines(): MemoLine[] {
             date: new Date(now - x.daysAgo * DAY).toISOString(),
             stock: x.stock,
             kind: x.kind,
-            title: x.kind === "jewelry" ? `${p?.name ?? "Jewelry"}, ${metals.find((m) => m.id === x.metal)?.label ?? ""}` : `${x.carat.toFixed(2)} ct ${x.shape ? SHAPE_LABEL[x.shape] : ""}`,
+            title: x.kind === "jewelry" ? `${p?.name ?? "Jewellery"}, ${metals.find((m) => m.id === x.metal)?.label ?? ""}` : `${x.carat.toFixed(2)} ct ${x.shape ? SHAPE_LABEL[x.shape] : ""}`,
             shape: x.shape,
             carat: x.carat,
             cut: x.cut,

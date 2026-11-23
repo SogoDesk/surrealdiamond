@@ -214,10 +214,10 @@ export default function MobileMenu({ open, onClose, links, secondary, visitHref 
                   {item.label}
                 </Link>
                 {/* The mega menu's contents for tablets and phones: categories, then collections. */}
-                {item.label === "Jewelry" && (
+                {item.label === "Jewellery" && (
                   <div className={styles.sheetSub} data-sheet-secondary>
                     {[
-                      { title: "Jewelry", items: divisionTypes },
+                      { title: "Jewellery", items: divisionTypes },
                       { title: "Collections", items: divisionCollections },
                     ].map((g) => (
                       <div key={g.title}>

@@ -293,7 +293,7 @@ export default function Visit({ className = "" }: VisitProps) {
                   <Parallax speed={-0.1} scale={1.2} className={styles.parallax}>
                     <Image
                       src={PHOTO}
-                      alt="A woman touching her collar, wearing layered silver jewelry"
+                      alt="A woman touching her collar, wearing layered silver jewellery"
                       fill
                       sizes="(max-width: 767px) 100vw, (max-width: 1279px) 42vw, 40vw"
                       className={styles.img}

@@ -45,7 +45,7 @@ export default function Footer({ className = "" }: FooterProps) {
               <Wordmark size={34} withByline withTm className={styles.wordmark} />
             </Link>
             <p className={styles.line}>
-              {brand.positioning}. Lab grown diamonds and handcrafted jewelry, trade only.
+              {brand.positioning}. Lab grown diamonds and handcrafted jewellery, trade only.
             </p>
 
             <address className={`${styles.visit} tabular`}>

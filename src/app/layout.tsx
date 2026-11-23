@@ -34,9 +34,9 @@ const ui = Urbanist({
 });
 
 export const metadata: Metadata = {
-  title: "Surreal Diamond | Lab Grown Diamonds and Fine Jewelry, New York",
+  title: "Surreal Diamond | Lab Grown Diamonds and Fine Jewellery, New York",
   description:
-    "Surreal grows DEF color, VVS clarity lab diamonds and sets them in handcrafted fine jewelry. Engagement rings, wedding bands, earrings, necklaces, pendants and bracelets, plus made to order and legacy diamonds.",
+    "Surreal grows DEF color, VVS clarity lab diamonds and sets them in handcrafted fine jewellery. Engagement rings, wedding bands, earrings, necklaces, pendants and bracelets, plus made to order and legacy diamonds.",
   metadataBase: new URL("https://surrealdiamond.com"),
   openGraph: {
     title: "Surreal Diamond | The New Forever",

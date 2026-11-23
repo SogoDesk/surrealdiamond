@@ -35,10 +35,10 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   return (
     <GatePage
       kind="dealer"
-      eyebrow={division.group === "collections" ? "Collection" : division.group === "programs" ? "Program" : "Jewelry"}
+      eyebrow={division.group === "collections" ? "Collection" : division.group === "programs" ? "Program" : "Jewellery"}
       title={division.label}
       line={`${division.note ? `${division.note}. ` : ""}Pieces, pricing and ordering for this division are open to Surreal dealers.`}
-      crumbs={[{ label: "Jewelry", href: "/jewelry" }, { label: division.label }]}
+      crumbs={[{ label: "Jewellery", href: "/jewelry" }, { label: division.label }]}
       motif={division.image ? undefined : division.motif}
       image={division.image ? `/media/renders/${division.image}.webp` : undefined}
     />

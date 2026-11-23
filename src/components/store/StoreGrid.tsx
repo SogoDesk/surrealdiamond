@@ -117,11 +117,11 @@ function PromoTile() {
       <Link href="/custom" className={s.promoLink}>
         <Image src="/media/photos/sb-3990-sm.webp" alt="" fill sizes="(min-width: 1280px) 40vw, 90vw" className={s.promoImage} />
         <span className={s.promoCopy}>
-          <span className={s.promoEyebrow}>Custom jewelry</span>
+          <span className={s.promoEyebrow}>Custom jewellery</span>
           <span className={s.promoTitle}>
             Change anything <em>about it</em>
           </span>
-          <span className={s.promoLine}>Our CAD department can make just about any jewelry item, in 14K, 18K or platinum.</span>
+          <span className={s.promoLine}>Our CAD department can make just about any jewellery item, in 14K, 18K or platinum.</span>
           <span className={s.promoCta}>
             Start a custom request
             <svg aria-hidden viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
@@ -190,7 +190,7 @@ export default function StoreGrid({ category, matches, density, query, showShape
     return (
       <div className={s.empty} role="status">
         <p className={s.emptyTitle}>Nothing matches these filters yet.</p>
-        <p className={s.emptyLine}>Our CAD department can make just about any jewelry item through a custom request.</p>
+        <p className={s.emptyLine}>Our CAD department can make just about any jewellery item through a custom request.</p>
         <button type="button" className={s.emptyBtn} onClick={onClear}>
           Clear filters
         </button>

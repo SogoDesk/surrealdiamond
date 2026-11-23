@@ -29,7 +29,7 @@ type PageId = "hot" | "look" | "all" | Category;
 const PAGES: { id: PageId; label: string; line: string }[] = [
   { id: "hot", label: "Hot this week", line: "Homepage" },
   { id: "look", label: "Complete the look", line: "Each product page" },
-  { id: "all", label: "All jewelry", line: "/jewelry" },
+  { id: "all", label: "All jewellery", line: "/jewelry" },
   ...categories.map((c) => ({ id: c.id as PageId, label: c.label, line: `/jewelry/${c.id}` })),
 ];
 
@@ -106,7 +106,7 @@ export default function AdminMerch() {
         <div>
           <p className={s.kicker}>Merchandising</p>
           <h1 className={s.pageTitle}>What leads each page</h1>
-          <p className={s.pageLine}>Hot this week on the homepage, Complete the look on each product page, the pieces featured to the top of each jewelry page, and each page&apos;s default sort.</p>
+          <p className={s.pageLine}>Hot this week on the homepage, Complete the look on each product page, the pieces featured to the top of each jewellery page, and each page&apos;s default sort.</p>
         </div>
       </header>
 

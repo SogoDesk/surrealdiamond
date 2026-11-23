@@ -51,7 +51,7 @@ export function AllDivisionsCard({ href }: { href: string }) {
   return (
     <li className={s.card}>
       <Link href={href} className={`${s.cardLink} ${s.allCard}`} draggable={false} data-palette="brand">
-        <span className={s.allFigure}>All jewelry</span>
+        <span className={s.allFigure}>All jewellery</span>
         <span className={s.allText}>From engagement rings to the seasonal catalogs</span>
         <span className={`t-nav ${s.allCta}`}>
           View all

@@ -23,7 +23,7 @@ export default function GateDoors({ kind, benefits }: { kind: "dealer" | "buildi
         </p>
         <div className={s.doors}>
           <Button href="/jewelry" variant="primary" arrow>
-            Browse jewelry
+            Browse jewellery
           </Button>
           <Button href={account.cart} variant="secondary">
             View cart

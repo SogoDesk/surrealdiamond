@@ -122,7 +122,7 @@ export default function AdminInventory() {
 
   const exportCsv = () =>
     tab === "jewelry"
-      ? downloadCsv("surreal-jewelry.csv", [
+      ? downloadCsv("surreal-jewellery.csv", [
           ["Id", "Name", "Style", "Category", "Metals", "Default metal", "Hot this week", "Featured on its page"],
           ...pieces.map((p) => [p.id, p.name, styleRef(p) ?? "", categoryLabel(p.category), productMetals(p).map(metalLabel).join(" / "), metalLabel(defaultMetalOf(p)), merch.hot.includes(p.id) ? "Yes" : "", (merch.pins[p.category] ?? []).includes(p.id) ? "Yes" : ""]),
         ])
@@ -157,7 +157,7 @@ export default function AdminInventory() {
 
       <div className={s.tabs} role="tablist" aria-label="Inventory">
         <button type="button" role="tab" aria-selected={tab === "jewelry"} className={s.tab} onClick={() => switchTab("jewelry")}>
-          Jewelry <span>{products.length}</span>
+          Jewellery <span>{products.length}</span>
         </button>
         <button type="button" role="tab" aria-selected={tab === "diamonds"} className={s.tab} onClick={() => switchTab("diamonds")}>
           Diamonds <span>{stones.length}</span>

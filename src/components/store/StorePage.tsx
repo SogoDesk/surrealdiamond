@@ -70,7 +70,7 @@ function WithParams({ category }: StorePageProps) {
 /** The divisions in labelled groups: the jewelry categories (round), then the collections and programs (rounded squares), each wrapping so no row runs off the page (client change request, November 2026). */
 function DivisionRail({ active }: { active: Category | null }) {
   return (
-    <nav className={s.rail} aria-label="Jewelry divisions">
+    <nav className={s.rail} aria-label="Jewellery divisions">
       {divisionGroups.map((g) => (
         <div key={g.id} className={s.railGroup} data-group={g.id}>
           <p className={s.railTitle}>{g.label}</p>
@@ -81,7 +81,7 @@ function DivisionRail({ active }: { active: Category | null }) {
                   <span className={`${s.railThumb} ${s.railAll}`} aria-hidden>
                     All
                   </span>
-                  <span className={s.railLabel}>All jewelry</span>
+                  <span className={s.railLabel}>All jewellery</span>
                 </Link>
               </li>
             )}
@@ -143,7 +143,7 @@ function StoreView({ category, params }: StorePageProps & { params: URLSearchPar
   const clearFilters = useCallback(() => setQuery(clearedQuery(query)), [query, setQuery]);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
-  const title = meta?.label ?? "All jewelry";
+  const title = meta?.label ?? "All jewellery";
 
   return (
     <>
@@ -154,12 +154,12 @@ function StoreView({ category, params }: StorePageProps & { params: URLSearchPar
             <span aria-hidden>/</span>
             {meta ? (
               <>
-                <Link href="/jewelry">Jewelry</Link>
+                <Link href="/jewelry">Jewellery</Link>
                 <span aria-hidden>/</span>
                 <span aria-current="page">{meta.label}</span>
               </>
             ) : (
-              <span aria-current="page">Jewelry</span>
+              <span aria-current="page">Jewellery</span>
             )}
           </nav>
           <div className={s.titleRow}>

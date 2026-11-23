@@ -387,7 +387,7 @@ export default function DashboardHome() {
           Diamond Legacy
         </Link>
         <a href={CUSTOM_PORTAL_URL} className={s.quickDoor} target="_blank" rel="noreferrer">
-          Custom jewelry portal
+          Custom jewellery portal
         </a>
         <button type="button" className={s.quickDoor} onClick={() => openContactDrawer("appointment", "visit")}>
           Schedule an appointment

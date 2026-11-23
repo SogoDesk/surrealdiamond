@@ -105,7 +105,7 @@ export default function MemoReport() {
           <h1 className={s.title}>
             Open <em>memo items</em>
           </h1>
-          <p className={s.lead}>Your long-term memo diamonds and jewelry, with prices updated daily. Report what has sold, and confirm the list or tell us what differs.</p>
+          <p className={s.lead}>Your long-term memo diamonds and jewellery, with prices updated daily. Report what has sold, and confirm the list or tell us what differs.</p>
         </div>
         <Link href="/diamonds" className={s.secondary}>
           Request a stone on memo
@@ -123,7 +123,7 @@ export default function MemoReport() {
           <dt>Items on memo</dt>
           <dd className="tabular">{open.length}</dd>
           <span>
-            {stonesCount} {stonesCount === 1 ? "stone" : "stones"}, {open.length - stonesCount} jewelry
+            {stonesCount} {stonesCount === 1 ? "stone" : "stones"}, {open.length - stonesCount} jewellery
           </span>
         </div>
         <div>
@@ -157,7 +157,7 @@ export default function MemoReport() {
             <div className={s.chips} role="group" aria-label="Show">
               {(["all", "stone", "jewelry"] as Kind[]).map((k) => (
                 <button key={k} type="button" className={s.chip} aria-pressed={kind === k} onClick={() => setKind(k)}>
-                  {k === "all" ? "All items" : k === "stone" ? "Diamonds" : "Jewelry"}
+                  {k === "all" ? "All items" : k === "stone" ? "Diamonds" : "Jewellery"}
                 </button>
               ))}
             </div>
@@ -230,7 +230,7 @@ export default function MemoReport() {
                             <span className={s.lineName}>{l.title}</span>
                           )}
                           <span className={s.itemTags}>
-                            {l.kind === "jewelry" ? "Jewelry" : "Loose diamond"}
+                            {l.kind === "jewelry" ? "Jewellery" : "Loose diamond"}
                             {l.sample && <span className={s.sampleTag}>Sample</span>}
                             {done && <span className={s.soldTag}>Reported sold</span>}
                           </span>

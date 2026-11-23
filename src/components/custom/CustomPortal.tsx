@@ -326,7 +326,7 @@ export default function CustomPortal() {
                   From a sketch <em>to a setting</em>
                 </h1>
                 <p className={s.lead}>
-                  Begin a custom design with our team. Our state of the art CAD department can make just about any jewelry item, and we get back to you
+                  Begin a custom design with our team. Our state of the art CAD department can make just about any jewellery item, and we get back to you
                   promptly after your request arrives.
                 </p>
               </div>

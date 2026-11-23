@@ -85,10 +85,10 @@ export const programs: Program[] = [
   {
     id: "custom",
     index: "03",
-    eyebrow: "Custom jewelry",
+    eyebrow: "Custom jewellery",
     title: "From a sketch",
     emphasis: "to a setting",
-    body: "Our state of the art CAD department can make just about any jewelry item, from your client's idea to the finished piece.",
+    body: "Our state of the art CAD department can make just about any jewellery item, from your client's idea to the finished piece.",
     facts: ["CAD on request", "F+ color, VS+ clarity on every custom piece", "14K, 18K or platinum"],
     image: "/media/banners/social-8.webp",
     imageAlt: "Pencil illustration of a woman wearing a diamond necklace and drop earrings",

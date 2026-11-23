@@ -47,7 +47,7 @@ const hrefFor = (label: string, fallback: string) => nav.find((n) => n.label ===
 
 /** Second-row links, in the order of the Phase 1 page list. */
 export const PRIMARY_LINKS: ChromeLink[] = [
-  { label: "Jewelry", href: hrefFor("Jewelry", "/jewelry") },
+  { label: "Jewellery", href: hrefFor("Jewellery", "/jewelry") },
   { label: "Diamonds", href: hrefFor("Diamonds", "/diamonds") },
   { label: "Made to Order", href: hrefFor("Made to Order", "/diamonds/made-to-order") },
   { label: "Legacy", href: hrefFor("Legacy", "/legacy") },
@@ -252,7 +252,7 @@ export default function Header({ menuOpen, onMenuToggle, headerRef, chapters = f
       <nav className={styles.row} aria-label="Primary">
         <ul className={styles.rowList}>
           {PRIMARY_LINKS.map((item) => {
-            const isShop = item.label === "Jewelry";
+            const isShop = item.label === "Jewellery";
             const active = isRouteActive(item.href);
             if (!isShop)
               return (
@@ -287,8 +287,7 @@ export default function Header({ menuOpen, onMenuToggle, headerRef, chapters = f
                     router.push(item.href);
                   }}
                 >
-                  {/* Shown as "Jewellery" in the top bar on request (19 November 2026); the label stays "Jewelry" in code, which the menu logic and the rest of the site use. */}
-                  <span>Jewellery</span>
+                  <span>{item.label}</span>
                   <Chevron />
                 </button>
               </li>

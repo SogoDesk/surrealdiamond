@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: ProductRouteProps): Promise<M
   if (!p) return {};
   return {
     title: `${p.name}, ${categoryLabel(p.category)} | Surreal Diamond`,
-    description: `${p.name}: ${p.detail}. Lab grown diamond jewelry from Surreal, for Surreal dealers.`,
+    description: `${p.name}: ${p.detail}. Lab grown diamond jewellery from Surreal, for Surreal dealers.`,
     openGraph: { images: [{ url: renderSrc(p.image), width: 1200, height: 1200 }] },
   };
 }

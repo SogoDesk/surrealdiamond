@@ -12,7 +12,7 @@ export const brand = {
     time: "From 1.5 billion years to just weeks, from inception to final inspection",
     material: "The world's most transparent diamond material",
     ethics: "Environmentally responsible, ethically made, completely identical to a mined diamond",
-    craft: "Diamonds grown with extremely high technology, jewelry handcrafted by the finest craftspeople",
+    craft: "Diamonds grown with extremely high technology, jewellery handcrafted by the finest craftspeople",
     cad: "State of the art CAD department",
     machines: "We manufacture our own CVD machines and created our growing recipe",
     largeStones: "Specializing in larger stones up to 15 carats",
@@ -78,7 +78,7 @@ export const account = {
 
 /** The Phase 1 page set (docs/CONTEXT.md). */
 export const nav = [
-  { label: "Jewelry", href: "/jewelry" },
+  { label: "Jewellery", href: "/jewelry" },
   { label: "Diamonds", href: "/diamonds" },
   { label: "Made to Order", href: "/diamonds/made-to-order" },
   { label: "Legacy", href: "/legacy" },
@@ -90,7 +90,7 @@ export const nav = [
 
 export const footerColumns = [
   {
-    title: "Jewelry",
+    title: "Jewellery",
     links: [
       { label: "Engagement Rings", href: "/jewelry/engagement" },
       { label: "Wedding Bands", href: "/jewelry/wedding-bands" },
@@ -115,7 +115,7 @@ export const footerColumns = [
     links: [
       { label: "About Us", href: "/about" },
       { label: "Company History", href: "/about#history" },
-      { label: "Custom Jewelry", href: "/custom" },
+      { label: "Custom Jewellery", href: "/custom" },
       { label: "Inquiries and Contact", href: "/contact" },
     ],
   },
