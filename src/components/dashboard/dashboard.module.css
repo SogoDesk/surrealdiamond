@@ -213,3 +213,10 @@
 .status[data-status="delivered"] { background: rgba(46, 158, 107, 0.14); color: #1f7a52; }
 :global(html[data-mode="dark"]) .status[data-status="delivered"] { background: rgba(110, 215, 160, 0.16); color: #8fe3b6; }
 .status[data-status="cancelled"] { background: var(--porcelain); color: var(--stone); box-shadow: inset 0 0 0 1px var(--hairline); }
+
+/* The slim footer, in place of the site's (client feedback, November 2026) */
+.footer { border-top: 1px solid var(--hairline); background: var(--porcelain); }
+.footerInner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; max-width: 1480px; margin: 0 auto; padding: 18px var(--gutter) calc(18px + env(safe-area-inset-bottom)); font-size: 0.75rem; color: var(--stone); }
+.footerLinks { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.footerLinks a { color: var(--graphite); text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.footerLinks a:hover { color: var(--ink); }

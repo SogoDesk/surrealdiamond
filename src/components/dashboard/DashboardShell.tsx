@@ -12,6 +12,11 @@
  * Become a dealer doors in its place. The dealer session lives in this
  * browser, so until the page has hydrated it shows a quiet skeleton rather
  * than flashing the signed-out doors.
+ *
+ * Below it, a slim footer rather than the site's (client feedback, November
+ * 2026): the header and the sidebar already lead everywhere, so only the
+ * legal line, the office phone (the sidebar's contact line is hidden on
+ * phones and tablets), Privacy and Terms.
  */
 
 import Link from "next/link";
@@ -19,7 +24,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSyncExternalStore, type ReactNode } from "react";
 import SiteChrome from "@/components/chrome/SiteChrome";
 import ContactDrawer from "@/components/chrome/ContactDrawer";
-import Footer from "@/components/sections/Footer";
 import { dashGroups, dashSections } from "@/content/dashboard";
 import { canSeeBilling } from "@/lib/invoices";
 import { account, brand } from "@/content/site";
@@ -149,8 +153,28 @@ export default function DashboardShell({ children }: { children: ReactNode }) {
       <ContactDrawer />
       <main id="main" className={s.main}>
         <div className={s.wrap}>{body}</div>
-        <Footer />
+        <DashFooter />
       </main>
     </>
+  );
+}
+
+function DashFooter() {
+  const year = new Date().getFullYear();
+  return (
+    <footer className={s.footer}>
+      <div className={s.footerInner}>
+        <span>
+          &copy; {year} {brand.name}. All rights reserved.
+        </span>
+        <nav aria-label="Footer" className={s.footerLinks}>
+          <a href={brand.office.phoneHref} className="tabular">
+            {brand.office.phone}
+          </a>
+          <Link href="/privacy">Privacy</Link>
+          <Link href="/terms">Terms</Link>
+        </nav>
+      </div>
+    </footer>
   );
 }
