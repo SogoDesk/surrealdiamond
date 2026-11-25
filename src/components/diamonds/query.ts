@@ -246,7 +246,8 @@ export function m2oHref(q: DiamondQuery, stone?: Stone): string {
     if (ratio && shape !== "round") p.set("ratio", ratio);
   }
   const qs = p.toString();
-  return `/diamonds/made-to-order${qs ? `?${qs}` : ""}`;
+  // A search or a stone carried in lands on the request form, below the page's introduction.
+  return `/diamonds/made-to-order${qs ? `?${qs}#request` : ""}`;
 }
 
 export const describe = (q: DiamondQuery) =>

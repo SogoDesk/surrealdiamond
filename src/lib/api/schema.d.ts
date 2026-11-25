@@ -400,6 +400,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/m2o/pricing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** M2O costs: the fee per diamond and the price per carat by size */
+        get: operations["M2OController_pricing"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -1409,6 +1426,35 @@ export interface operations {
                         page: number;
                         pageSize: number;
                         pages: number;
+                    };
+                };
+            };
+        };
+    };
+    M2OController_pricing: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        currency: "USD";
+                        feeCents: number;
+                        standardShapes: string[];
+                        bands: {
+                            fromCarat: number;
+                            toCarat: number;
+                            perCaratCents: number;
+                        }[];
                     };
                 };
             };

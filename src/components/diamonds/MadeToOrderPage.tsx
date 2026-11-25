@@ -17,9 +17,14 @@
  * request (kept in this browser for the preview, with a request number); a
  * visitor is asked to log in first. Whether M2O stays a page of its own or
  * lives inside the diamond page is Q7.
+ *
+ * Around the form, Surreal's own M2O page (November 2026): the hero, the
+ * terms, the M2O costs, the nine touchpoints and sizes that mean something
+ * (M2OSections.tsx). Beside the form, a signed-in dealer sees an estimate from
+ * the cost table (the M2O fee plus the price per carat), which Surreal
+ * confirms. A link from the diamond search lands on the form (#request).
  */
 
-import Image from "next/image";
 import Link from "next/link";
 import { Suspense, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
@@ -29,9 +34,11 @@ import Footer from "@/components/sections/Footer";
 import ShapeIcon from "@/components/brand/ShapeIcon";
 import { CLARITIES, COLORS, FLUORESCENCE, GRADES, SHAPE_LABEL, stoneById, stoneTitle, type StoneShape } from "@/content/diamonds";
 import { account, brand } from "@/content/site";
-import { M2O_FACTS, M2O_FIELDS, M2O_GRADES, M2O_SHAPES, m2oGrade, type M2OField, type M2OGradeField } from "@/content/m2o";
+import { M2O_FIELDS, M2O_GRADES, M2O_SHAPES, m2oGrade, type M2OField, type M2OGradeField } from "@/content/m2o";
 import { useDealer } from "@/lib/dealer";
+import { caratRange, formatCarat, formatCents, m2oEstimate, useM2OPricing, type M2OEstimate, type M2OPricingState } from "@/lib/m2oPricing";
 import { m2oRequests as requests, m2oSize, type M2ORequest } from "@/lib/requests";
+import { M2OCosts, M2OHero, M2OIdeas, M2OStory, M2OTerms } from "./M2OSections";
 import s from "./m2o.module.css";
 
 type Field = M2OField;
@@ -73,21 +80,96 @@ export default function MadeToOrderPage() {
       <SiteChrome />
       <ContactDrawer />
       <main id="main">
-        <Suspense fallback={<Request params={null} />}>
-          <WithParams />
-        </Suspense>
+        <M2OBody />
         <Footer />
       </main>
     </>
   );
 }
 
-function WithParams() {
-  const params = useSearchParams();
-  return <Request params={params} />;
+function M2OBody() {
+  const dealer = useDealer();
+  const pricing = useM2OPricing(Boolean(dealer));
+  return (
+    <>
+      <M2OHero />
+      <M2OTerms />
+      <M2OCosts state={pricing} />
+      <Suspense fallback={<Request params={null} pricing={pricing} />}>
+        <WithParams pricing={pricing} />
+      </Suspense>
+      <M2OStory />
+      <M2OIdeas />
+    </>
+  );
 }
 
-function Request({ params }: { params: URLSearchParams | null }) {
+function WithParams({ pricing }: { pricing: M2OPricingState }) {
+  const params = useSearchParams();
+  return <Request params={params} pricing={pricing} />;
+}
+
+/** Beside the form: the estimate from the cost table, or what stands in for it. */
+function EstimateCard({ state, estimate }: { state: M2OPricingState; estimate: M2OEstimate | null }) {
+  const message =
+    state.status === "signed-out"
+      ? "Log in to see an estimate from the M2O cost table."
+      : state.status === "unavailable"
+        ? "Estimates show on the live site, where the cost table loads for signed-in dealers."
+        : state.status === "loading"
+          ? "Loading the M2O costs."
+          : state.status === "error"
+            ? "The M2O costs could not be loaded. The estimate shows once they do."
+            : estimate && !estimate.ok
+              ? estimate.reason === "dimensions"
+                ? "Ordering by dimensions: Surreal confirms the carat weight and the price."
+                : estimate.reason === "shape"
+                  ? "Shapes outside the standard six are quoted by Surreal."
+                  : estimate.reason === "outside"
+                    ? `Sizes outside ${formatCarat(caratRange(state.pricing).from)} to ${formatCarat(caratRange(state.pricing).to)} ct are quoted by Surreal.`
+                    : "Enter the exact size in carats to see an estimate."
+              : "";
+  return (
+    <div className={s.estimate} aria-live="polite">
+      <p className={s.estimateTitle}>Your estimate</p>
+      {estimate?.ok ? (
+        <>
+          <dl className={s.estimateLines}>
+            <div>
+              <dt>
+                Diamond, {formatCarat(estimate.carat)} ct at {formatCents(estimate.band.perCaratCents, { whole: true })} per carat
+              </dt>
+              <dd>{formatCents(estimate.diamondCents)}</dd>
+            </div>
+            <div>
+              <dt>M2O fee</dt>
+              <dd>{formatCents(estimate.feeCents)}</dd>
+            </div>
+            <div className={s.estimateTotal}>
+              <dt>Estimate</dt>
+              <dd>{formatCents(estimate.totalCents)}</dd>
+            </div>
+          </dl>
+          <p className={s.estimateNote}>Surreal confirms the price after your request.</p>
+        </>
+      ) : (
+        <p className={s.estimateNote}>{message}</p>
+      )}
+      {state.status === "error" && (
+        <button type="button" className={s.textBtn} onClick={state.retry}>
+          Try again
+        </button>
+      )}
+      {state.status === "ready" && (
+        <a href="#costs" className={s.textBtn}>
+          See the cost table
+        </a>
+      )}
+    </div>
+  );
+}
+
+function Request({ params, pricing }: { params: URLSearchParams | null; pricing: M2OPricingState }) {
   const dealer = useDealer();
   const from = params?.get("from") ? stoneById(params.get("from") as string) : undefined;
   const qShape = params?.get("shape") as StoneShape | null;
@@ -132,6 +214,7 @@ function Request({ params }: { params: URLSearchParams | null }) {
   const searchSpec = [qShape ? (SHAPE_LABEL[qShape] ?? qShape) : "", qSize ? `${qSize} ct` : qDims ? `${qDims} mm` : "", specOf(initial)].filter(Boolean).join(", ");
   const set = (k: Field, v: string) => setValues({ ...form, [k]: v });
   const shapeForIcon = (M2O_SHAPES.includes(form.shape as StoneShape) ? form.shape : qShape ?? "oval") as StoneShape;
+  const estimate = pricing.status === "ready" ? m2oEstimate(pricing.pricing, { carat: Number(form.size), shape: form.shape, byDimensions: sizeBy === "dimensions" }) : null;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -155,11 +238,12 @@ function Request({ params }: { params: URLSearchParams | null }) {
       size: sizeBy === "carat" ? form.size : "",
       dimensions: sizeBy === "dimensions" ? form.dimensions.trim() : undefined,
       spec: specOf(form) || undefined,
+      estimateCents: estimate?.ok ? estimate.totalCents : undefined,
       sentAt: new Date().toISOString(),
     };
     requests.set((list) => [request, ...list]);
     setSent(request);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    document.getElementById("request")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const input = (k: Exclude<Field, "shape" | "notes" | M2OGradeField>, extraHint?: string) => {
@@ -261,23 +345,15 @@ function Request({ params }: { params: URLSearchParams | null }) {
   };
 
   return (
-    <section className={s.section} aria-labelledby="m2o-title">
+    <section id="request" className={s.section} aria-labelledby="m2o-request">
       <div className={s.wrap}>
-        <nav aria-label="Breadcrumb" className={s.crumbs}>
-          <Link href="/">Home</Link>
-          <span aria-hidden>/</span>
-          <Link href="/diamonds">Lab Diamond Search</Link>
-          <span aria-hidden>/</span>
-          <span aria-current="page">Made to Order</span>
-        </nav>
-
         <div className={s.layout}>
           <div className={s.main}>
-            <p className={s.eyebrow}>Made to Order (M2O)</p>
-            <h1 id="m2o-title" className={s.title}>
-              A diamond grown <em>for one client</em>
-            </h1>
-            <p className={s.lead}>Order any shape, in any carat weight or dimensions. Tell us the stone; we grow it to the exact specification.</p>
+            <p className={s.eyebrow}>Your request</p>
+            <h2 id="m2o-request" className={s.h2}>
+              Request an <em>M2O diamond</em>
+            </h2>
+            <p className={s.lead}>Tell us the stone: any shape, in any carat weight, size or dimensions. After you send the request, Surreal contacts you to confirm the price.</p>
 
             {sent ? (
               <div className={s.sent} role="status">
@@ -288,10 +364,11 @@ function Request({ params }: { params: URLSearchParams | null }) {
                 </span>
                 <p className={s.sentNumber}>{sent.number}</p>
                 <p>
-                  Request sent for a {m2oSize(sent)} {(SHAPE_LABEL[sent.shape as StoneShape] ?? sent.shape).toLowerCase()}. Surreal confirms the specification,
-                  the program fee and timing with you. Questions: {brand.office.phone}.
+                  Request sent for a {m2oSize(sent)} {(SHAPE_LABEL[sent.shape as StoneShape] ?? sent.shape).toLowerCase()}. Surreal contacts you to confirm the
+                  specification, the price and the delivery date. Questions: {brand.office.phone}.
                 </p>
                 {sent.spec && <p className={s.specLine}>Asked for: {sent.spec}.</p>}
+                {sent.estimateCents !== undefined && <p className={s.specLine}>Estimate: {formatCents(sent.estimateCents)}, the M2O fee included. Surreal confirms the price.</p>}
                 <p className={s.previewNote}>Preview: the request is kept in this browser; request emails connect with the dealer platform.</p>
                 <div className={s.doors}>
                   <Link href="/diamonds" className={s.primary}>
@@ -416,32 +493,11 @@ function Request({ params }: { params: URLSearchParams | null }) {
             )}
           </div>
 
-          <aside className={s.side} aria-label="How Made to Order works">
-            <div className={s.visual}>
-              <Image src="/media/photos/sb-3996-sm.webp" alt="Oval halo ring in hard window light" fill sizes="(min-width: 1024px) 30vw, 100vw" />
-            </div>
-            <div className={s.facts}>
-              <p className={s.factsTitle}>How it works</p>
-              <ul>
-                {M2O_FACTS.map((f) => (
-                  <li key={f}>
-                    <svg aria-hidden viewBox="0 0 10 10" width="9" height="9">
-                      <path d="M5 0.5 9.5 5 5 9.5 0.5 5Z" fill="currentColor" />
-                    </svg>
-                    {f}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <Link href="/legacy" className={s.legacy}>
-              <span>
-                <strong>Diamond Legacy</strong>
-                Every diamond in a Legacy collection is grown from the same seed line, for each milestone to come.
-              </span>
-              <svg aria-hidden viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 8h10M9 4l4 4-4 4" />
-              </svg>
-            </Link>
+          <aside className={s.side} aria-label="Your estimate">
+            <EstimateCard state={pricing} estimate={estimate} />
+            <p className={s.sideContact}>
+              Questions about a request? Call <a href={brand.office.phoneHref}>{brand.office.phone}</a>, {brand.office.hours}.
+            </p>
           </aside>
         </div>
       </div>

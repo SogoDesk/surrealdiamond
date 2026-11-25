@@ -19,6 +19,7 @@ Prices: public catalog and stone endpoints never include prices, cost or price s
 | POST `/auth/setup` | Public | token, password; activates and signs in | `completeSetup` |
 | POST `/auth/password` | Signed in | current, new; ends other sessions | `AccountSettings` |
 | POST `/auth/password/reset-link` | Signed in | emails the person a reset link; 503 `email_unavailable` when it could not be sent (no mail service yet) | `AccountSettings` Forgot your password? |
+| GET `/m2o/pricing` | Signed in | M2O costs: the fee per diamond and the price per carat by size band, in cents, for all standard shapes (from Surreal's M2O page, 25 Nov 2026; kept out of the site's code because they are dealer prices) | Made to Order costs table and estimate |
 | POST `/auth/mfa/setup`, POST `/auth/mfa/verify`, POST `/auth/mfa/recover`, POST `/auth/mfa/disable` | Staff | Optional two-factor: TOTP enrolment, the code at sign in, a one-use recovery code, turning it off with the password. `/auth/me` reports `off`, `ok` or `code_required` | new |
 | POST `/auth/switch-store` | Dealer | for a person who belongs to two stores | new |
 

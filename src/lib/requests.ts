@@ -15,6 +15,8 @@ export interface M2ORequest {
   dimensions?: string;
   /** Grades and proportions asked for, as one line: "D to F color, VVS1 to VS1 clarity, Excellent cut or better". */
   spec?: string;
+  /** The estimate shown when it was sent, in cents (M2O fee plus the price per carat); Surreal confirms the price. */
+  estimateCents?: number;
   sentAt: string;
 }
 

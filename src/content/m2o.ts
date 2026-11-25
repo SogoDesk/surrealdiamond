@@ -74,16 +74,58 @@ export const M2O_GRADES: { id: M2OGradeField; label: string; hint?: string }[] =
 /** The shapes offered on the live M2O form; anything else goes under Other. */
 export const M2O_SHAPES: StoneShape[] = ["round", "radiant", "oval", "cushion", "emerald", "pear"];
 
-/** The program as the live site states it. */
-export const M2O_FACTS = [
-  "Exclusively for Surreal dealers",
-  "Any shape, in any carat weight or dimensions",
-  "Under 4 ct: FG+ color, VS+ clarity",
-  "Over 4 ct: G+ color, VS+ clarity",
-  "Every diamond comes with an IGI grading certificate",
-  "A brochure with nine unique visual touchpoints for your client",
-  "A program fee plus the stone, confirmed with your order",
+/*
+ * The program, in Surreal's words from its own M2O page (copied 25 November
+ * 2026, at Surreal's request). The costs are not here on purpose: they are
+ * dealer prices, so they come from the API to signed-in people only
+ * (lib/m2oPricing.ts).
+ */
+
+/** The terms, one card each. */
+export const M2O_TERMS: { title: string; line: string }[] = [
+  { title: "Any shape, any size", line: "Order any diamond shape in any carat weight, size or dimensions." },
+  { title: "Color and clarity", line: "Under 4 ct: F or G color or better, VS clarity or better. Over 4 ct: G color or better, VS clarity or better." },
+  { title: "IGI certified", line: "Every M2O diamond comes with an IGI grading certificate." },
+  { title: "Its story, in a brochure", line: "Each M2O diamond comes with a brochure of nine unique visual touchpoints tracking its creation." },
+  { title: "6 to 8 weeks", line: "Delivery is 6 to 8 weeks from the confirmed order date." },
+  { title: "Priced by the carat", line: "An M2O fee plus the diamond at a price per carat for its size. Surreal confirms the price after your request." },
 ];
+
+/** The nine touchpoints the brochure follows, in order. */
+export const M2O_TOUCHPOINTS = [
+  "Starts with a seed",
+  "Grow seed, grow",
+  "Care for a biscuit?",
+  "Turn up the heat",
+  "Lasering and grinding",
+  "Planning topology",
+  "Roughing out the rough",
+  "Final polish",
+  "Quality check",
+];
+
+/** What the brochure records for each diamond. */
+export const M2O_BROCHURE = [
+  "An image of the initial seed, and its thickness",
+  "The machine it grew in, and the date growth began",
+  "The first biscuit latticework image, and the image after growth showing its diamond like carbon (DLC) edges",
+  "The total days of growth, and the weight of the rough diamond",
+  "An X-ray image of the rough stone, with the laser planning",
+  "An image of the polished diamond, and its IGI grading report number",
+  "The final color, clarity grade and carat weight",
+  "Your client's name and a unique Provenance Report Number",
+  "Your store's name and the delivery date",
+  "The signature of the associate who delivers the diamond",
+];
+
+/** Sizes that mean something, from Surreal's own examples. */
+export const M2O_IDEAS: { size: string; line: string }[] = [
+  { size: "3.16 ct", line: "For John 3:16" },
+  { size: "3.80 ct", line: "For a 38 and 0 championship season" },
+];
+
+/** Surreal's sample M2O sales brochure (a PDF on Google Drive, open to anyone with the link). */
+export const M2O_SAMPLE_BROCHURE = "https://drive.google.com/file/d/1N4K6m-K7q60kQS3E4DLLO5MTDLbBRTfh/view?usp=drive_link";
 
 /** The grade promise for a size, from the program facts. */
 export const m2oGrade = (ct: number) => (ct > 4 ? "Over 4 ct: G color or better, VS clarity or better" : "Under 4 ct: F or G color or better, VS clarity or better");

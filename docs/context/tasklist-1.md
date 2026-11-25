@@ -5,7 +5,8 @@
 - [x] 1. Move the price next to the carat weight and shape details.
 - [x] 2. Move the Purchase and Get on Memo (STM) options to the top of the product display. Both should be clearly visible together, above the fold.
 - [ ] 3. Add the Legacy logo to the buttons used for Legacy stone selection. ![ASSETS NEEDED FROM NEHA](tag-assets-needed.svg)
-- [ ] 4. Integrate the M2O pricing chart into the design (chart to be shared by Surreal) - @Sudhiksha please follow-up Neha for charts, images. ![ASSETS NEEDED FROM NEHA](tag-assets-needed.svg)
+- [x] 4. Integrate the M2O pricing chart into the design (chart to be shared by Surreal) - @Sudhiksha please follow-up Neha for charts, images. ![ASSETS NEEDED FROM NEHA](tag-assets-needed.svg)
+  - Done 25 Nov 2026: the chart, content and photographs from Surreal's own M2O page. The Made to Order page now has the program terms, the M2O cost table (signed-in dealers only, served by the API), a live estimate beside the request (M2O fee plus the price per carat), the nine touchpoints and the brochure, and sizes that mean something.
 
 ## FILTERS
 
