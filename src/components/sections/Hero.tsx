@@ -124,7 +124,7 @@ function Carousel({ slides }: { slides: HeroSlide[] }) {
           <h1 className={`${styles.wordmark} t-display`}>SURREAL</h1>
           <div className={styles.copy}>
             <p className="t-body">
-              The New Forever, for your counter. DEF color, VVS clarity lab grown diamonds and handcrafted jewellery. Trade only, always.
+              The New Forever, for your counter. DEF color, VVS clarity lab grown diamonds and handcrafted jewelry. Trade only, always.
             </p>
             <div className={styles.ctas}>
               <Button href={dealer ? "/diamonds" : account.login} variant="primary" magnetic={false} className={styles.primarySky}>

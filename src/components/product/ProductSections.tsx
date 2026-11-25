@@ -56,9 +56,9 @@ export function ProgramBanners() {
               <Image src="/media/banners/social-8.webp" alt="" fill sizes="(min-width: 900px) 40vw, 60vw" />
             </span>
             <span className={s.bannerCopy}>
-              <span className={s.bannerEyebrow}>Custom jewellery</span>
+              <span className={s.bannerEyebrow}>Custom jewelry</span>
               <span className={s.bannerTitle}>Change anything about it</span>
-              <span className={s.bannerLine}>Our CAD department can make just about any jewellery item, in 14K, 18K or platinum.</span>
+              <span className={s.bannerLine}>Our CAD department can make just about any jewelry item, in 14K, 18K or platinum.</span>
               <span className={s.bannerCta}>
                 Start a custom request <Arrow />
               </span>
@@ -117,7 +117,7 @@ export function Details({ product, selection }: { product: Product; selection: P
       <div className={s.wrap}>
         <div className={s.detailsHead}>
           <h2 id="details-title" className={s.sectionTitle}>
-            Jewellery <em>details</em>
+            Jewelry <em>details</em>
           </h2>
         </div>
 
@@ -383,13 +383,13 @@ const QUESTIONS: { q: string; a: ReactNode }[] = [
       </>
     ),
   },
-  { q: "Can jewellery come on memo?", a: "Surreal runs a long-term memo program for diamonds and jewellery. Open memo items are repriced daily, and you reconcile them from your Retailer Dashboard." },
+  { q: "Can jewelry come on memo?", a: "Surreal runs a long-term memo program for diamonds and jewelry. Open memo items are repriced daily, and you reconcile them from your Retailer Dashboard." },
   { q: "When will an order arrive?", a: "Order before 4:00pm ET to receive next day delivery." },
   { q: "How can we pay?", a: "Orders are billed to your account and paid from your Retailer Dashboard by card, ACH or wire. You can also pay by card, ACH or wire at checkout. Check and Zelle are arranged with the office." },
   { q: "Is a certificate included?", a: "Certificates can be provided on request. Made to Order diamonds always come with an IGI grading certificate." },
   {
     q: "Can it be made in another metal, size or design?",
-    a: "Yes. Send a custom request: our CAD department can make just about any jewellery item, in 14K, 18K or platinum, with F+ color and VS+ clarity diamonds.",
+    a: "Yes. Send a custom request: our CAD department can make just about any jewelry item, in 14K, 18K or platinum, with F+ color and VS+ clarity diamonds.",
   },
 ];
 

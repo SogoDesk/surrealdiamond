@@ -15,7 +15,7 @@
 - [x] 7. Default search criteria: F colour and above, VS2 clarity and above.
 - [x] 8. Hide the filter bar while scrolling.
 
-## JEWELLERY PRODUCT PAGE & CART
+## JEWELRY PRODUCT PAGE & CART
 
 - [x] 9. Show the quantity and carat weight fields on one line.
 - [x] 10. Simplify Special Instructions by removing the engraving and delivery-date prompts.
@@ -38,7 +38,7 @@
 - [x] 20. Add a "Forgot your password?" request link.
   - Done 23 Nov 2026: in Account settings, under the current password. It shows an error until a mail service is set up to send the email.
 - [x] 21. Remove sidebar links that already exist elsewhere on the site, and add Brand Images and Spiff Program catalogs.
-  - Part done 23 Nov 2026: Diamond search, Made to Order, Diamond Legacy, Custom jewellery and Cart are out of the sidebar.
+  - Part done 23 Nov 2026: Diamond search, Made to Order, Diamond Legacy, Custom jewelry and Cart are out of the sidebar.
   - Done 25 Nov 2026: a new Programs group in the sidebar with two pages, from Surreal's own dashboard pages. SPIF program: how the Jewelry Rewards card works, with Register and Log in. Brand assets: previews of the social posts, web banners, logo, product images and turntable videos, each opening larger with a download, and the Dropbox libraries for the rest. The logo folder, the campaign folder and both videos on the old page no longer open, so the site's own logo and videos stand in for them until Surreal shares new links.
 - [x] 22. Default invoice payment method: bill to account (standard wholesale workflow).
   - Done 23 Nov 2026: Bill to account is chosen by default at checkout, with card, ACH and wire still offered. A billed order shows as an open invoice on Net 30 Days terms (to confirm with Surreal).
@@ -47,13 +47,13 @@
 ## OTHER FRONTEND BUGS
 
 - [x] 1. Fix the spelling of Jewelry in the top navbar and make it proper.
-  - 23 Nov 2026: now spelled Jewellery everywhere the site shows it (pages, menus, titles, console). Page addresses stay /jewelry so links keep working.
+  - 25 Nov 2026: spelled the US way, Jewelry, everywhere the site shows it (pages, menus, titles, console), since Surreal sells to US retailers. It was briefly Jewellery from 23 Nov. A search for "jewellery" still finds the jewelry pages. Page addresses stay /jewelry.
 - [x] 2. Top navbar: when scrolling up and down, the last bar of the navbar shows separately. It should not show as a separate bar, and the navbar should show up faster on each page.
 - [x] 3. Top navbar: remove Appointments so the search bar is not cut off, and move the cart icon before the Dealer Options and Retailer Dashboard buttons.
 
 ## ADDED ON REQUEST
 
-- [x] Jewellery listing pages: show the products on the first screen instead of the categories, collections and programs.
+- [x] Jewelry listing pages: show the products on the first screen instead of the categories, collections and programs.
   - Done 23 Nov 2026: a compact top (smaller title, one line pricing note) and one row of category pills, with Collections and Programs as pills that open their tiles. The first row of products now shows on a 1440 × 900 laptop and on a phone. The description stays on laptops and is hidden on phones.
 
 ## NOTE

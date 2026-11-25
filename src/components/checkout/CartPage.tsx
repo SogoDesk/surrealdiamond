@@ -133,7 +133,7 @@ export default function CartPage() {
                   <div className={s.memoCard}>
                     <p className={s.memoTitle}>Prefer it on memo?</p>
                     <p>
-                      Loose stones can come on memo: choose Get on memo on the diamond page and the stone travels with this order, at the memo price Surreal confirms. Jewellery is purchase only. Questions: {brand.office.phone}.
+                      Loose stones can come on memo: choose Get on memo on the diamond page and the stone travels with this order, at the memo price Surreal confirms. Jewelry is purchase only. Questions: {brand.office.phone}.
                     </p>
                   </div>
                 </div>

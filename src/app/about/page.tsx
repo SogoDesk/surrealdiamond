@@ -22,10 +22,10 @@ export default function Page() {
           If a Diamond is Forever, Surreal is <em>the New Forever</em>
         </>
       }
-      line="We grow primarily DEF color, VVS clarity diamonds on machines we manufacture ourselves, from a recipe we created. Then our craftspeople set them in jewellery, for the trade only."
+      line="We grow primarily DEF color, VVS clarity diamonds on machines we manufacture ourselves, from a recipe we created. Then our craftspeople set them in jewelry, for the trade only."
       crumbs={[{ label: "About" }]}
       image="/media/photos/sb-3502.webp"
-      imageAlt="Diamond jewellery worn in the Surreal studio"
+      imageAlt="Diamond jewelry worn in the Surreal studio"
       doors={
         <>
           <TradeDoor variant="primary" arrow />

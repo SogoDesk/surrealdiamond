@@ -5,7 +5,7 @@ import Button from "@/components/ui/Button";
 import { CUSTOM_PORTAL_URL, brand } from "@/content/site";
 
 export const metadata: Metadata = {
-  title: "Custom Jewellery | Surreal Diamond",
+  title: "Custom Jewelry | Surreal Diamond",
   description: "Begin a custom design with Surreal's CAD department. F+ color, VS+ clarity diamonds on every custom item.",
 };
 
@@ -26,14 +26,14 @@ export default function Page() {
   );
   return (
     <ContentPage
-      eyebrow="Custom jewellery"
+      eyebrow="Custom jewelry"
       title={
         <>
           From a sketch <em>to a setting</em>
         </>
       }
-      line="Our state of the art CAD department can make just about any jewellery item, from your client's idea to the finished piece. F+ color, VS+ clarity diamonds on every custom item."
-      crumbs={[{ label: "Custom jewellery" }]}
+      line="Our state of the art CAD department can make just about any jewelry item, from your client's idea to the finished piece. F+ color, VS+ clarity diamonds on every custom item."
+      crumbs={[{ label: "Custom jewelry" }]}
       image="/media/banners/social-8.webp"
       imageAlt="Pencil illustration of a woman wearing a diamond necklace and drop earrings"
       doors={

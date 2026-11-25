@@ -80,7 +80,7 @@ function DivisionThumb({ division }: { division: Division }) {
 
 /**
  * The divisions as one compact row, so the pieces start high on the first
- * screen (client feedback, November 2026): All and the jewellery categories as
+ * screen (client feedback, November 2026): All and the jewelry categories as
  * pills with a small thumbnail, then Collections and Programs as two pills
  * that open a panel of their tiles. Laptops wrap the row; tablets and phones
  * scroll it sideways. On a collection or program page its pill shows the
@@ -107,11 +107,11 @@ function DivisionPills({ active }: { active: Category | null }) {
   const menus = divisionGroups.filter((g) => g.id !== "types");
 
   return (
-    <nav ref={ref} className={s.pills} aria-label="Jewellery divisions">
+    <nav ref={ref} className={s.pills} aria-label="Jewelry divisions">
       <ul className={s.pillRow}>
         <li>
           <Link href="/jewelry" className={`${s.pill} ${s.pillText}`} aria-current={active === null ? "page" : undefined}>
-            All jewellery
+            All jewelry
           </Link>
         </li>
         {divisions
@@ -209,7 +209,7 @@ function StoreView({ category, params }: StorePageProps & { params: URLSearchPar
   const clearFilters = useCallback(() => setQuery(clearedQuery(query)), [query, setQuery]);
   const closeDrawer = useCallback(() => setDrawerOpen(false), []);
 
-  const title = meta?.label ?? "All jewellery";
+  const title = meta?.label ?? "All jewelry";
 
   return (
     <>
@@ -220,12 +220,12 @@ function StoreView({ category, params }: StorePageProps & { params: URLSearchPar
             <span aria-hidden>/</span>
             {meta ? (
               <>
-                <Link href="/jewelry">Jewellery</Link>
+                <Link href="/jewelry">Jewelry</Link>
                 <span aria-hidden>/</span>
                 <span aria-current="page">{meta.label}</span>
               </>
             ) : (
-              <span aria-current="page">Jewellery</span>
+              <span aria-current="page">Jewelry</span>
             )}
           </nav>
           <div className={s.titleRow}>

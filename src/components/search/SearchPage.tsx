@@ -52,7 +52,7 @@ function Results({ q }: { q: string }) {
   const total = r.stoneTotal + r.exact.length + r.products.length + r.pages.length;
   const counts = [r.stoneTotal + r.exact.length ? `${r.stoneTotal + r.exact.length} ${r.stoneTotal + r.exact.length === 1 ? "stone" : "stones"}` : "", r.products.length ? `${r.products.length} ${r.products.length === 1 ? "piece" : "pieces"}` : "", r.pages.length ? `${r.pages.length} ${r.pages.length === 1 ? "page" : "pages"}` : ""].filter(Boolean);
 
-  if (!q) return <Empty title="What are you looking for?" line="Search jewellery by name, style number or type, diamonds by shape, carat, color and clarity, or a stock ID." />;
+  if (!q) return <Empty title="What are you looking for?" line="Search jewelry by name, style number or type, diamonds by shape, carat, color and clarity, or a stock ID." />;
   if (total === 0 && !r.stoneFilter) return <Empty title={<>Nothing found for &ldquo;{q}&rdquo;</>} line="Try a shorter search, a style number, or a stone like 1-2ct oval DEF. For anything else, call or message us." />;
 
   return (
@@ -157,7 +157,7 @@ function Results({ q }: { q: string }) {
           <div className={s.sectionHead}>
             <div>
               <h2 id="res-jewelry" className={s.sectionTitle}>
-                Jewellery
+                Jewelry
               </h2>
               <p className={s.sectionLine}>
                 {r.products.length} {r.products.length === 1 ? "piece" : "pieces"}
@@ -205,7 +205,7 @@ function Empty({ title, line }: { title: ReactNode; line: string }) {
           </li>
         ))}
       </ul>
-      <p className={s.label}>Jewellery</p>
+      <p className={s.label}>Jewelry</p>
       <ul className={s.chips}>
         {categories.map((c) => (
           <li key={c.id}>
@@ -246,7 +246,7 @@ function SearchView() {
       <h1 className={s.title}>{q ? <>Results for <em>&ldquo;{q}&rdquo;</em></> : <>Search</>}</h1>
       <form role="search" className={s.form} onSubmit={submit}>
         <label htmlFor="page-search" className={s.srOnly}>
-          Search jewellery, diamonds and pages
+          Search jewelry, diamonds and pages
         </label>
         <input id="page-search" type="search" value={value} onChange={(e) => setValue(e.target.value)} placeholder="Oval halo, LE2004, 1-2ct oval DEF, a stock ID" className={s.input} autoComplete="off" />
         <button type="submit" className={s.primary}>

@@ -25,7 +25,7 @@ export interface Division {
 }
 
 export const divisionGroups: { id: DivisionGroup; label: string }[] = [
-  { id: "types", label: "Jewellery" },
+  { id: "types", label: "Jewelry" },
   { id: "collections", label: "Collections" },
   { id: "programs", label: "Programs" },
 ];

@@ -43,7 +43,7 @@ interface Group {
 const GROUPS: Group[] = [
   {
     id: "types",
-    label: "Jewellery",
+    label: "Jewelry",
     items: divisions.filter((d) => d.group === "types"),
     extras: [],
     promo: { title: "The full catalog", line: "Every piece, with your pricing once you log in.", href: "/jewelry", cta: "View all" },
@@ -62,12 +62,12 @@ const GROUPS: Group[] = [
     label: "Programs and ordering",
     items: divisions.filter((d) => d.group === "programs"),
     extras: [
-      { label: "Jewellery Order Form", href: "/jewelry/order-form" },
+      { label: "Jewelry Order Form", href: "/jewelry/order-form" },
       { label: "Made to Order Diamonds", href: "/diamonds/made-to-order" },
       { label: "Diamond Legacy", href: "/legacy" },
       { label: "Lab Diamond Search", href: "/diamonds" },
     ],
-    promo: { title: "Order in bulk", line: "Key style numbers straight into the jewellery order form.", href: "/jewelry/order-form", cta: "Open the form" },
+    promo: { title: "Order in bulk", line: "Key style numbers straight into the jewelry order form.", href: "/jewelry/order-form", cta: "Open the form" },
     editorial: { src: "/media/photos/sb-3990-sm.webp", caption: "Made to Order, grown to your specification", href: "/diamonds/made-to-order" },
   },
 ];
@@ -150,7 +150,7 @@ export default function MegaMenu({ open, onIntent, onClose }: MegaMenuProps) {
       onPointerLeave={() => onIntent(false)}
     >
       <div className={styles.megaInner}>
-        <ul className={styles.megaRail} role="tablist" aria-label="Jewellery groups" data-mega-item>
+        <ul className={styles.megaRail} role="tablist" aria-label="Jewelry groups" data-mega-item>
           {GROUPS.map((g) => (
             <li key={g.id}>
               <button

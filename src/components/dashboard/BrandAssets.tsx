@@ -112,7 +112,7 @@ export default function BrandAssets() {
           Brand <em>assets</em>
         </h1>
         <p className={p.lead}>
-          Our job is not only the diamonds and jewellery your customers love. It is also the marketing that helps you lead the lab grown category in your market. Preview what is here, download what you need, and open the full libraries for more.
+          Our job is not only the diamonds and jewelry your customers love. It is also the marketing that helps you lead the lab grown category in your market. Preview what is here, download what you need, and open the full libraries for more.
         </p>
         <nav className={x.jump} aria-label="On this page">
           {JUMPS.map((j) => (

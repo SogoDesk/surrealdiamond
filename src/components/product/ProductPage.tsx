@@ -151,7 +151,7 @@ function ProductView({ product, params }: { product: Product; params: URLSearchP
           <nav aria-label="Breadcrumb" className={s.crumbs}>
             <Link href="/">Home</Link>
             <span aria-hidden>/</span>
-            <Link href="/jewelry">Jewellery</Link>
+            <Link href="/jewelry">Jewelry</Link>
             <span aria-hidden>/</span>
             <Link href={`/jewelry/${product.category}`}>{categoryLabel(product.category)}</Link>
             <span aria-hidden>/</span>

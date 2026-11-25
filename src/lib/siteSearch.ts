@@ -90,8 +90,8 @@ const PAGES: (PageHit & { keys: string })[] = [
   { label: "Lab Diamond Search", line: "Every loose stone, with filters", href: "/diamonds", keys: "diamond diamonds loose stones search lab grown" },
   { label: "Made to Order", line: "Grow a stone to your client's size", href: "/diamonds/made-to-order", keys: "made to order m2o grow custom stone size request" },
   { label: "Diamond Legacy", line: "Diamonds grown from the same seed line", href: "/legacy", keys: "legacy seed family heirloom generation" },
-  { label: "Custom jewellery", line: "The custom order portal", href: "/custom", keys: "custom design cad bespoke portal jewelry jewellery" },
-  { label: "Jewellery order form", line: "Order by style number", href: "/jewelry/order-form", keys: "order form style number bulk jewelry jewellery" },
+  { label: "Custom jewelry", line: "The custom order portal", href: "/custom", keys: "custom design cad bespoke portal jewelry jewellery" },
+  { label: "Jewelry order form", line: "Order by style number", href: "/jewelry/order-form", keys: "order form style number bulk jewelry jewellery" },
   { label: "Retailer Dashboard", line: "Orders, memo, invoices and payments", href: "/dashboard", keys: "dashboard account retailer dealer portal" },
   { label: "Invoices and payments", line: "Open invoices, payments and statement", href: "/dashboard/invoices", keys: "invoice invoices payment payments statement balance billing" },
   { label: "Open memo items", line: "Stones on memo and memo reports", href: "/dashboard/memo", keys: "memo consignment report" },
@@ -101,7 +101,7 @@ const PAGES: (PageHit & { keys: string })[] = [
   { label: "Schedule an appointment", line: "Showroom and virtual appointments", href: "/contact?type=appointment", keys: "appointment schedule visit showroom meeting" },
   { label: "Contact", line: "Phone, email and the office", href: "/contact", keys: "contact phone email call address office help" },
   { label: "About Surreal", line: "The company behind the diamonds", href: "/about", keys: "about company story" },
-  ...divisions.map((d) => ({ label: d.label, line: d.note ?? (d.group === "types" ? "Jewellery" : d.group === "collections" ? "Collection" : "Program"), href: d.href, keys: `${d.label} ${d.group} jewelry jewellery` })),
+  ...divisions.map((d) => ({ label: d.label, line: d.note ?? (d.group === "types" ? "Jewelry" : d.group === "collections" ? "Collection" : "Program"), href: d.href, keys: `${d.label} ${d.group} jewelry jewellery` })),
 ];
 
 function readCarat(tok: string, next?: string): { lo: number | null; hi: number | null; used: number } | null {

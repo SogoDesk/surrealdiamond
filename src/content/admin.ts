@@ -113,7 +113,7 @@ export const adminModule = (id: string) => adminModules.find((m) => m.id === id)
 
 /** Pages a banner or pop-up can lead to. */
 export const SITE_LINKS: { href: string; label: string }[] = [
-  { href: "/jewelry", label: "All jewellery" },
+  { href: "/jewelry", label: "All jewelry" },
   { href: "/jewelry/engagement", label: "Engagement rings" },
   { href: "/jewelry/wedding-bands", label: "Wedding bands" },
   { href: "/jewelry/earrings", label: "Earrings" },

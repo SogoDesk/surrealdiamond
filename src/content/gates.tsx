@@ -4,10 +4,10 @@ import type { GatePageProps } from "@/components/pages/GatePage";
 export const gates = {
   orderForm: {
     kind: "dealer",
-    eyebrow: "Jewellery order form",
+    eyebrow: "Jewelry order form",
     title: <>Order by <em>style number</em></>,
     line: "Key the pieces your store needs straight into one order. The order form is open to Surreal dealers.",
-    crumbs: [{ label: "Jewellery", href: "/jewelry" }, { label: "Order form" }],
+    crumbs: [{ label: "Jewelry", href: "/jewelry" }, { label: "Order form" }],
     image: "/media/photos/sb-3730.webp",
   },
   cart: {
