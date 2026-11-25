@@ -18,15 +18,18 @@
  * visitor is asked to log in first. Whether M2O stays a page of its own or
  * lives inside the diamond page is Q7.
  *
- * Around the form, Surreal's own M2O page (November 2026): the hero, the
- * terms, the M2O costs, the nine touchpoints and sizes that mean something
- * (M2OSections.tsx). Beside the form, a signed-in dealer sees an estimate from
+ * Around the form, Surreal's own M2O page (November 2026), in this order: the
+ * hero, the M2O costs, the form, how it works, the nine touchpoints and sizes
+ * that mean something (M2OSections.tsx), each revealed once as it arrives
+ * (useM2OMotion.ts). Every section runs its own motion, after its own part of
+ * the page has hydrated: the form sits in a Suspense boundary, and touching it
+ * from outside before then would make React's hydration fail. Beside the form, a signed-in dealer sees an estimate from
  * the cost table (the M2O fee plus the price per carat), which Surreal
  * confirms. A link from the diamond search lands on the form (#request).
  */
 
 import Link from "next/link";
-import { Suspense, useState, type FormEvent } from "react";
+import { Suspense, useRef, useState, type FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import SiteChrome from "@/components/chrome/SiteChrome";
 import ContactDrawer from "@/components/chrome/ContactDrawer";
@@ -39,6 +42,7 @@ import { useDealer } from "@/lib/dealer";
 import { caratRange, formatCarat, formatCents, m2oEstimate, useM2OPricing, type M2OEstimate, type M2OPricingState } from "@/lib/m2oPricing";
 import { m2oRequests as requests, m2oSize, type M2ORequest } from "@/lib/requests";
 import { M2OCosts, M2OHero, M2OIdeas, M2OStory, M2OTerms } from "./M2OSections";
+import { useM2OMotion } from "./useM2OMotion";
 import s from "./m2o.module.css";
 
 type Field = M2OField;
@@ -93,11 +97,11 @@ function M2OBody() {
   return (
     <>
       <M2OHero />
-      <M2OTerms />
       <M2OCosts state={pricing} />
       <Suspense fallback={<Request params={null} pricing={pricing} />}>
         <WithParams pricing={pricing} />
       </Suspense>
+      <M2OTerms />
       <M2OStory />
       <M2OIdeas />
     </>
@@ -130,7 +134,7 @@ function EstimateCard({ state, estimate }: { state: M2OPricingState; estimate: M
                     : "Enter the exact size in carats to see an estimate."
               : "";
   return (
-    <div className={s.estimate} aria-live="polite">
+    <div className={s.estimate} data-palette="brand" aria-live="polite">
       <p className={s.estimateTitle}>Your estimate</p>
       {estimate?.ok ? (
         <>
@@ -147,7 +151,9 @@ function EstimateCard({ state, estimate }: { state: M2OPricingState; estimate: M
             </div>
             <div className={s.estimateTotal}>
               <dt>Estimate</dt>
-              <dd>{formatCents(estimate.totalCents)}</dd>
+              <dd key={estimate.totalCents} className={s.totalTick}>
+                {formatCents(estimate.totalCents)}
+              </dd>
             </div>
           </dl>
           <p className={s.estimateNote}>Surreal confirms the price after your request.</p>
@@ -171,6 +177,8 @@ function EstimateCard({ state, estimate }: { state: M2OPricingState; estimate: M
 
 function Request({ params, pricing }: { params: URLSearchParams | null; pricing: M2OPricingState }) {
   const dealer = useDealer();
+  const sectionRef = useRef<HTMLElement>(null);
+  useM2OMotion(sectionRef);
   const from = params?.get("from") ? stoneById(params.get("from") as string) : undefined;
   const qShape = params?.get("shape") as StoneShape | null;
   const qSize = params?.get("size") ?? "";
@@ -345,15 +353,17 @@ function Request({ params, pricing }: { params: URLSearchParams | null; pricing:
   };
 
   return (
-    <section id="request" className={s.section} aria-labelledby="m2o-request">
+    <section ref={sectionRef} id="request" className={s.section} aria-labelledby="m2o-request">
       <div className={s.wrap}>
         <div className={s.layout}>
           <div className={s.main}>
-            <p className={s.eyebrow}>Your request</p>
-            <h2 id="m2o-request" className={s.h2}>
+            <p className={s.eyebrow} data-rise>
+              Your request
+            </p>
+            <h2 id="m2o-request" className={s.h2} data-split>
               Request an <em>M2O diamond</em>
             </h2>
-            <p className={s.lead}>Tell us the stone: any shape, in any carat weight, size or dimensions. After you send the request, Surreal contacts you to confirm the price.</p>
+            <p className={s.lead} data-rise>Tell us the stone: any shape, in any carat weight, size or dimensions. After you send the request, Surreal contacts you to confirm the price.</p>
 
             {sent ? (
               <div className={s.sent} role="status">
