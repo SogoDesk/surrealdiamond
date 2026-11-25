@@ -16,6 +16,8 @@ export default function DashIcon({ id, className = "" }: { id: Id; className?: s
       {id === "invoices" && <path d="M6 3h12v18l-2.5-1.6L13 21l-2.5-1.6L8 21l-2-1.4ZM9 8h6M9 11.5h6M9 15h3.5" {...p} />}
       {id === "shows" && <path d="M4 6h16v14H4ZM4 10h16M8 3v4M16 3v4M9 15l2 2 4-4" {...p} />}
       {id === "payments" && <path d="M3 6h18v12H3ZM3 10h18M7 15h4" {...p} />}
+      {id === "spif" && <path d="M3 8h18v11H3ZM3 12h18M7 16h4M18 2v4M16 4h4" {...p} />}
+      {id === "brand" && <path d="M4 5h16v14H4ZM4 15.5l4.5-4.5 4 4 2.5-2.5 5 5M15.5 9.5h.01" {...p} />}
       {id === "account" && <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" {...p} />}
     </svg>
   );

@@ -37,8 +37,9 @@
   - Done 23 Nov 2026: under the store name at the top of the dashboard, on phones too.
 - [x] 20. Add a "Forgot your password?" request link.
   - Done 23 Nov 2026: in Account settings, under the current password. It shows an error until a mail service is set up to send the email.
-- [ ] 21. Remove sidebar links that already exist elsewhere on the site, and add Brand Images and Spiff Program catalogs. ![ASSETS NEEDED FROM NEHA](tag-assets-needed.svg)
-  - Part done 23 Nov 2026: Diamond search, Made to Order, Diamond Legacy, Custom jewellery and Cart are out of the sidebar. Brand Images and Spiff Program catalogs wait for the files.
+- [x] 21. Remove sidebar links that already exist elsewhere on the site, and add Brand Images and Spiff Program catalogs.
+  - Part done 23 Nov 2026: Diamond search, Made to Order, Diamond Legacy, Custom jewellery and Cart are out of the sidebar.
+  - Done 25 Nov 2026: a new Programs group in the sidebar with two pages, from Surreal's own dashboard pages. SPIF program: how the Jewelry Rewards card works, with Register and Log in. Brand assets: previews of the social posts, web banners, logo, product images and turntable videos, each opening larger with a download, and the Dropbox libraries for the rest. The logo folder, the campaign folder and both videos on the old page no longer open, so the site's own logo and videos stand in for them until Surreal shares new links.
 - [x] 22. Default invoice payment method: bill to account (standard wholesale workflow).
   - Done 23 Nov 2026: Bill to account is chosen by default at checkout, with card, ACH and wire still offered. A billed order shows as an open invoice on Net 30 Days terms (to confirm with Surreal).
 - [ ] 23. Order status and shipment tracking should update from the system's shipping paperwork.
