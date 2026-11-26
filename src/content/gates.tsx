@@ -25,6 +25,7 @@ export const gates = {
     line: "Globally competitive direct pricing, comprehensive brand strategy, digital marketing support and territory exclusivity. The application form is in design.",
     crumbs: [{ label: "Apply" }],
     image: "/media/photos/sb-3591.webp",
+    showNote: false,
   },
   terms: {
     kind: "building",

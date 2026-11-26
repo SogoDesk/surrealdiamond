@@ -12,7 +12,7 @@ import { account, brand } from "@/content/site";
 import { useDealer } from "@/lib/dealer";
 import s from "./GatePage.module.css";
 
-export default function GateDoors({ kind, benefits }: { kind: "dealer" | "building"; benefits: string[] }) {
+export default function GateDoors({ kind, benefits, showNote = true }: { kind: "dealer" | "building"; benefits: string[]; showNote?: boolean }) {
   const dealer = useDealer();
 
   if (kind === "dealer" && dealer) {
@@ -68,7 +68,7 @@ export default function GateDoors({ kind, benefits }: { kind: "dealer" | "buildi
           Call {brand.office.phone}
         </Button>
       </div>
-      <p className={s.note}>This page is in design and arrives with the next release.</p>
+      {showNote && <p className={s.note}>This page is in design and arrives with the next release.</p>}
     </>
   );
 }

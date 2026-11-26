@@ -25,6 +25,8 @@ export interface GatePageProps {
   image?: string;
   motif?: Motif;
   benefits?: string[];
+  /** Building pages: show the "in design" note under the doors (off on Apply, client request, November 2026). */
+  showNote?: boolean;
 }
 
 const DEALER_POINTS = [
@@ -33,7 +35,7 @@ const DEALER_POINTS = [
   "Digital marketing support",
   "Territory exclusivity",
 ];
-export default function GatePage({ kind, eyebrow, title, line, crumbs, image = "/media/photos/sb-3990.webp", motif, benefits = DEALER_POINTS }: GatePageProps) {
+export default function GatePage({ kind, eyebrow, title, line, crumbs, image = "/media/photos/sb-3990.webp", motif, benefits = DEALER_POINTS, showNote = true }: GatePageProps) {
   return (
     <>
       <SiteChrome />
@@ -55,7 +57,7 @@ export default function GatePage({ kind, eyebrow, title, line, crumbs, image = "
                 <Eyebrow>{eyebrow}</Eyebrow>
                 <h1 className={s.title}>{title}</h1>
                 <p className={s.line}>{line}</p>
-                <GateDoors kind={kind} benefits={benefits} />
+                <GateDoors kind={kind} benefits={benefits} showNote={showNote} />
               </div>
               <div className={s.visual}>
                 {motif ? <DivisionMotif motif={motif} className={s.motif} /> : <Image src={image} alt="" fill priority sizes="(min-width: 900px) 44vw, 100vw" className={image.startsWith("/media/renders/") ? s.render : s.image} />}
